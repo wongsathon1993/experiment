@@ -66,8 +66,7 @@ void setup()
   lc.shutdown(0, false);
   lc.setIntensity(0, 8);
   lc.clearDisplay(0);
-  EEPROM.write(addr1, 0);
-  EEPROM.write(addr2, 0);
+  displayFace(fOne);
 }
 
 void loop()
