@@ -2,6 +2,7 @@
 #include <Ultrasonic.h>
 #include <LedControl.h>
 #include <EEPROM.h>
+#include <ArduinoJson.h>
 #include <binary.h>
 Ultrasonic ultrasonicLeft(6, 5);
 Ultrasonic ultrasonicRight(3, 4);        // PIN 6 = TRIG // PIN 5 = ECHO
@@ -123,7 +124,7 @@ void selectFace(int index) {
       displayFace(fZero);
       break;
     }
-    // SendDataToSerial
+    sendDataToServer();
 }
 
 void displayFace(byte* face) {
@@ -150,4 +151,28 @@ int goRight(int idx)
     idx += 1;
   }
   return idx;
+}
+
+void sendDataToServer() {
+  StaticJsonDocument<500> doc;
+
+  // Create the "analog" array
+  JsonArray analogValues = doc.createNestedArray("analog");
+  for (int pin = 0; pin < 6; pin++) {
+    // Read the analog input
+    int value = analogRead(pin);
+
+    // Add the value at the end of the array
+    analogValues.add(value);
+  }
+
+  // Create the "digital" array
+  JsonArray digitalValues = doc.createNestedArray("digital");
+  for (int pin = 0; pin < 14; pin++) {
+    // Read the digital input
+    int value = digitalRead(pin);
+
+    // Add the value at the end of the array
+    digitalValues.add(value);
+  }
 }
