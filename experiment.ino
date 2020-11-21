@@ -3,8 +3,8 @@
 #include <LedControl.h>
 #include <EEPROM.h>
 #include <binary.h>
-Ultrasonic ultrasonicLeft(6, 5);
-Ultrasonic ultrasonicRight(3, 4);        // PIN 6 = TRIG // PIN 5 = ECHO
+Ultrasonic ultrasonicLeft(5, 6);        // PIN 5 = TRIG // PIN 6 = ECHO
+Ultrasonic ultrasonicRight(3, 4);        // PIN 3 = TRIG // PIN 4 = ECHO
 LedControl lc = LedControl(8, 10, 9, 1); // DIN = 8  // CS = 9 // CLK = 10
 
 int addr1 = 0;
@@ -16,14 +16,14 @@ unsigned long delaytime = 1000;
 
 
 byte fZero[8] = {
-    B00000000,
-    B00000000,
-    B00000000,
-    B00000000,
-    B00000000,
-    B00000000,
-    B00000000,
-    B00000000,
+    B00111100,
+    B01000010,
+    B10000101,
+    B10000001,
+    B10000001,
+    B10000101,
+    B01000010,
+    B00111100,
 };
 
 byte fOne[8] = {
@@ -55,6 +55,39 @@ byte ft[8] = {
     B10010001,
     B10010001,
     B10100101,
+    B01000010,
+    B00111100,
+};
+
+byte fTwo[8] = {
+    B00111100,
+    B01000010,
+    B10100101,
+    B10110001,
+    B10110001,
+    B10100101,
+    B01000010,
+    B00111100,
+};
+
+byte fThree[8] = {
+    B00111100,
+    B01000010,
+    B10000101,
+    B10110001,
+    B10110001,
+    B10000101,
+    B01000010,
+    B00111100,
+};
+
+byte fFour[8] = {
+    B00111100,
+    B01000010,
+    B10010101,
+    B10010001,
+    B10010001,
+    B10010101,
     B01000010,
     B00111100,
 };
@@ -116,9 +149,23 @@ void selectFace(int index) {
     case 0:
       displayFace(ff);
       break;
+      
     case 1:
       displayFace(ft);
       break;
+       
+    case 2:
+      displayFace(fTwo);
+      break; 
+           
+    case 3:
+      displayFace(fThree);
+      break;  
+
+    case 4:
+      displayFace(fFour);
+      break;        
+         
     default:
       displayFace(fZero);
       break;
