@@ -45,6 +45,12 @@ client.on('connect', function() {
       client.publish(process.env.LIGHT_TOPIC, JSON.stringify(trigg_message));
     }
   });
+
+  client.subscribe(process.env.SENSOR_TOPIC, function(err) {
+    if (!err) {
+      client.publish(process.env.SENSOR_TOPIC, JSON.stringify(trigg_message));
+    }
+  });
 });
 
 client.on("error", function () {
@@ -57,7 +63,7 @@ client.on('message', function(topic, message) {
   console.log(`${topic}:${message.toString()}`);
   if (topic == process.env.SYSTEM_TOPIC) {
     saveDataToFireStore(topic, message);
-    queryFireStore();
+    queryFireStore(topic);
   }
 });
 
@@ -74,9 +80,9 @@ function saveDataToFireStore(topic, message) {
   });
 }
 
-function queryFireStore(){
+function queryFireStore(topic){
   let _faceProp = [];
-  const faceDb = cloudFirestore.collection('faceLogs');
+  const faceDb = cloudFirestore.collection(topic);
   faceDb.onSnapshot(snapshot => {
     snapshot.forEach((face) => {
       console.log(face.id)
