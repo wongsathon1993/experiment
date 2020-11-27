@@ -1,18 +1,20 @@
+// LIB IMPORT
 require("dotenv").config();
 const express = require("express");
-const app = express();
-const port = process.env.PORT;
-
 const mqtt = require("mqtt");
-
 const admin = require("firebase-admin");
+
+const port = process.env.PORT;
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+const fireStore = process.env.DATABASE_URL;
+
 const base64ToJSON = (s) => (s ? JSON.parse(Buffer.from(s, 'base64').toString()) : undefined);
 
 admin.initializeApp({
   credential: admin.credential.cert(
-    base64ToJSON(process.env.FIREBASE_SERVICE_ACCOUNT),
+    base64ToJSON(serviceAccount),
   ),
-  databaseURL: process.env.DATABASE_URL,
+  databaseURL: fireStore,
 });
 
 const cloudFirestore = admin.firestore();
@@ -37,6 +39,12 @@ client.on('connect', function() {
       client.publish(process.env.VISION_TOPIC, JSON.stringify(trigg_message));
     }
   });
+
+  client.subscribe(process.env.LIGHT_TOPIC, function(err) {
+    if (!err) {
+      client.publish(process.env.LIGHT_TOPIC, JSON.stringify(trigg_message));
+    }
+  });
 });
 
 client.on("error", function () {
@@ -46,22 +54,11 @@ client.on("error", function () {
 
 
 client.on('message', function(topic, message) {
-  switch (topic) {
-    case process.env.SYSTEM_TOPIC:
-      console.log(topic);
-      break;
-    case process.env.VISION_TOPIC:
-      console.log('hi');
-      break;
-    case process.env.LIGHT_TOPIC:
-      let faceProp = queryFireStore();
-      console.log(faceProp);
-      break;
-    default:
-      console.log(`${topic}:${message.toString()}`);
-      break;
+  console.log(`${topic}:${message.toString()}`);
+  if (topic == process.env.SYSTEM_TOPIC) {
+    saveDataToFireStore(topic, message);
+    queryFireStore();
   }
-  saveDataToFireStore(topic, message);
 });
 
 function saveDataToFireStore(topic, message) {
@@ -79,14 +76,16 @@ function saveDataToFireStore(topic, message) {
 
 function queryFireStore(){
   let _faceProp = [];
+  const faceDb = cloudFirestore.collection('faceLogs');
   faceDb.onSnapshot(snapshot => {
     snapshot.forEach((face) => {
-      faceProp.push(face.data()['selectedFace'])
+      console.log(face.id)
+      _faceProp.push(face.data()['selectedFace'])
     });
+    console.log(_faceProp.length);
    }, err => {
     console.log(`Error: ${err}`);
    });
-   return _faceProp;
 }
 
-app.listen(port, () => console.log(`Experiment app listening on port ${port}!`));
+express().listen(port, () => console.log(`Experiment app listening on port ${port}!`));
