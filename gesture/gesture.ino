@@ -24,22 +24,24 @@ int soundPotValue;
 
 Max72xxPanel matrix = Max72xxPanel(5, 1, 1);
 
-unsigned long delaytime = 1000;
-
 char output[1024];
 
 WiFiClient client;
 PubSubClient mqtt(client);
 
-char topic[] = "/controls";
-
 void callback(char *topic, byte *payload, unsigned int length)
 {
-  payload[length] = '\0';
-  String topic_str = topic, payload_str = (char *)payload;
-  Serial.println("[" + topic_str + "]: " + payload_str);
+  DynamicJsonDocument incoming(1024);
 
-  digitalWrite(LED_BUILTIN, (payload_str == "ON") ? HIGH : LOW);
+  payload[length] = '\0';
+  String topic_str = topic;
+
+  deserializeJson(incoming, (char *) payload);
+  JsonObject obj = incoming.as<JsonObject>();
+  String action = obj["action"];
+  delay(100);
+  digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
+  delay(100);
 }
 
 void noFace()
@@ -84,6 +86,12 @@ void sadRightFace()
 void sadLeftFace()
 {
   matrix.drawPixel(0, 4, 1);
+  matrix.write();
+}
+
+void sadFiveFace()
+{
+  matrix.drawPixel(4 , 4, 1);
   matrix.write();
 }
 
@@ -159,7 +167,7 @@ void loop()
 
     Serial.println(soundPotValue);
 
-    if ((soundPotValue < 1023) && (soundPotValue > 0))
+    if (((soundPotValue < 1023) && (soundPotValue > 0)) || (soundPotValue == 4095))
     {
       long duration1, distance1;
       digitalWrite(uOneTrigPin, LOW);
@@ -177,7 +185,9 @@ void loop()
 
       if ((distance1 < 20) && (distance1 > 0))
       {
-        currentIndex += 1;
+        if ((currentIndex >= 0) && (currentIndex != 5)) {
+          currentIndex += 1;
+        }
         delay(100);
         displayFace(currentIndex);
       }
@@ -200,7 +210,9 @@ void loop()
 
       if ((distance2 < 20) && (distance2 > 0))
       {
-        currentIndex -= 1;
+        if ((currentIndex <= 5) && (currentIndex != 0)) {
+          currentIndex -= 1;
+        }
         delay(100);
         displayFace(currentIndex);
       }
@@ -210,6 +222,8 @@ void loop()
     else
     {
       sendDataToServer(currentIndex);
+      delay(100);
+      resetSystem();
       delay(100);
     }
     delay(100);
@@ -238,6 +252,9 @@ void displayFace(int index)
   case 4:
     sadLeftFace();
     break;
+  case 5:
+    sadFiveFace();
+    break;
   default:
     emptyFace();
     break;
@@ -246,7 +263,7 @@ void displayFace(int index)
 
 void sendSensorData()
 {
-  StaticJsonDocument<200> doc;
+  StaticJsonDocument<1024> doc;
 
   doc["sensor"] = "GESTURE";
   doc["id"] = 140137;
@@ -264,8 +281,13 @@ void sendDataToServer(int index)
 
   doc["type"] = "GESTURE";
   doc["face"] = index;
+  doc["value"] = 16.6;
 
   serializeJson(doc, output);
 
   mqtt.publish("/system", output);
+}
+
+void resetSystem() {
+  currentIndex = 0;
 }

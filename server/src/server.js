@@ -46,6 +46,14 @@ client.on('connect', function() {
   });
 });
 
+client.on("reconnect", () => {
+  console.log("MQTT client is reconnecting...");
+});
+
+client.on("disconnect", () => {
+  console.log("MQTT client is disconnecting...");
+});
+
 client.on("error", function () {
   console.log("Can't connect")
   client.end();
@@ -60,11 +68,11 @@ client.on('message', function(topic, message) {
       registerNewSensor(message);
     }
     console.log(`${topic}:${message.toString()}`);
-  } else if (topic == process.env.SYSTEM_TOPIC) {
+  } else if (topic == "/system") {
     if (action.type == 'GESTURE') {
       saveSelectedFaceToFireStore(message);
       publishLightControlMessage();
-      saveActionToFireStore(message);
+      // saveActionToFireStore(message);
     }
     console.log(`${topic}:${message.toString()}`);
   } else if (topic == process.env.CONTROL_TOPIC) {
@@ -118,9 +126,11 @@ function registerNewSensor(message) {
 function publishLightControlMessage() {
   let trigg_message = {
     type: "LIGHT",
-    message: "hello",
+    success: true,
+    action: "ON",
+    pattern: [],
   };
-  client.publish(process.env.LIGHT_TOPIC, JSON.stringify(trigg_message));
+  client.publish(process.env.CONTROL_TOPIC, JSON.stringify(trigg_message));
 }
 
 function isSensorExist(message) {
@@ -136,5 +146,9 @@ function isSensorExist(message) {
   });
   return not_exist;
 }
+
+express().get('/', function (req, res) {
+  console.log("don't sleep")
+})
 
 express().listen(port, () => console.log(`Experiment app listening on port ${port}!`));

@@ -19,13 +19,22 @@ unsigned long delaytime = 1000;
 WiFiClient client;
 PubSubClient mqtt(client);
 
+char output[1024];
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    payload[length] = '\0';
-    String topic_str = topic, payload_str = (char *)payload;
-    Serial.println("[" + topic_str + "]: " + payload_str);
+  DynamicJsonDocument incoming(1024);
 
-    digitalWrite(LED_BUILTIN, (payload_str == "ON") ? HIGH : LOW);
+  payload[length] = '\0';
+  String topic_str = topic;
+
+  deserializeJson(incoming, (char *) payload);
+  JsonObject obj = incoming.as<JsonObject>();
+  String action = obj["action"];
+  delay(100);
+  digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
+  delay(100);
+  sendDataToServer(action);
 }
 
 void setup()
@@ -66,6 +75,7 @@ void loop()
         if (mqtt.connect(MQTT_USERNAME, MQTT_USERNAME, MQTT_PASSWORD))
         {
             Serial.println("connected");
+            sendSensorData();
         }
         else
         {
@@ -79,4 +89,31 @@ void loop()
         Serial.print("hi");
         delay(1000);
     }
+}
+
+void sendSensorData()
+{
+  StaticJsonDocument<1024> doc;
+
+  doc["sensor"] = "LIGHT";
+  doc["id"] = 5027;
+  doc["config"] = 64;
+  doc["active"] = true;
+
+  serializeJson(doc, output);
+
+  mqtt.publish("/sensors", output);
+}
+
+void sendDataToServer(String action)
+{
+  StaticJsonDocument<1024> doc;
+
+  doc["type"] = "LIGHT";
+  doc["succuess"] = true;
+  doc["action"] = action;
+
+  serializeJson(doc, output);
+
+  mqtt.publish("/controls", output);
 }
