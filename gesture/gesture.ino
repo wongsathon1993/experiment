@@ -1,125 +1,103 @@
-#include <Ultrasonic.h>
-#include <LedControl.h>
-#include <EEPROM.h>
+#include <WiFi.h>
 #include <ArduinoJson.h>
 #include <binary.h>
-#include <WiFi.h>
 #include <PubSubClient.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Max72xxPanel.h>
 
+#define WIFI_STA_NAME "MoMieNote8"
+#define WIFI_STA_PASS "MoMie5027vivek"
 
-#define WIFI_STA_NAME "xxxxxxxxxx"
-#define WIFI_STA_PASS "xxxxxxxxxx"
-
-#define MQTT_SERVER   "m16.cloudmqtt.com"
-#define MQTT_PORT     16319
+#define MQTT_SERVER "m16.cloudmqtt.com"
+#define MQTT_PORT 16319
 #define MQTT_USERNAME "ggaomyqh"
 #define MQTT_PASSWORD "3wjA27NFU3ET"
 
-Ultrasonic ultrasonicLeft(5, 6);        // PIN 5 = TRIG // PIN 6 = ECHO
-Ultrasonic ultrasonicRight(3, 4);        // PIN 3 = TRIG // PIN 4 = ECHO
-LedControl lc = LedControl(8, 10, 9, 1); // DIN = 8  // CS = 9 // CLK = 1
+const int uOneTrigPin = 25;
+const int uOneEchoPin = 26;
 
-int addr1 = 0;
-int addr2 = 5;
-byte value1 = 1;
-byte value2 = 2;
+const int uTwoTrigPin = 17;
+const int uTwoEchoPin = 16;
+
+int soundPotValue;
+
+Max72xxPanel matrix = Max72xxPanel(5, 1, 1);
 
 unsigned long delaytime = 1000;
+
+char output[1024];
 
 WiFiClient client;
 PubSubClient mqtt(client);
 
-void callback(char* topic, byte* payload, unsigned int length) {
+char topic[] = "/controls";
+
+void callback(char *topic, byte *payload, unsigned int length)
+{
   payload[length] = '\0';
-  String topic_str = topic, payload_str = (char*)payload;
+  String topic_str = topic, payload_str = (char *)payload;
   Serial.println("[" + topic_str + "]: " + payload_str);
 
   digitalWrite(LED_BUILTIN, (payload_str == "ON") ? HIGH : LOW);
 }
 
+void noFace()
+{
+  matrix.drawPixel(0, 0, 1);
+  matrix.write();
+}
 
-byte fZero[8] = {
-   B00111100,
-   B01000010,
-   B10000101,
-   B10000001,
-   B10000001,
-   B10000101,
-   B01000010,
-   B00111100,
-};
+void happyRightFace()
+{
+  matrix.drawPixel(3, 2, 1);
+  matrix.drawPixel(5, 2, 1); //eye
+  matrix.drawPixel(2, 3, 1);
+  matrix.drawPixel(2, 4, 1);
+  matrix.drawPixel(3, 5, 1);
+  matrix.drawPixel(5, 5, 1); //eye
+  matrix.write();
+}
 
-byte fOne[8] = {
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-    B11111111,
-};
+void happyLeftFace()
+{
+  matrix.drawPixel(2, 2, 1);
+  matrix.drawPixel(5, 2, 1); //eye
+  matrix.drawPixel(4, 3, 1);
+  matrix.drawPixel(4, 4, 1);
+  matrix.drawPixel(2, 5, 1);
+  matrix.drawPixel(5, 5, 1); //eye
+  matrix.write();
+}
 
-byte ff[8] = {
-    B00111100,
-    B01000010,
-    B10010101,
-    B10100001,
-    B10100001,
-    B10010101,
-    B01000010,
-    B00111100,
-};
+void sadRightFace()
+{
+  matrix.drawPixel(2, 2, 1);
+  matrix.drawPixel(5, 2, 1); //eye
+  matrix.drawPixel(3, 3, 1);
+  matrix.drawPixel(3, 4, 1);
+  matrix.drawPixel(2, 5, 1);
+  matrix.drawPixel(5, 5, 1); //eye
+  matrix.write();
+}
 
-byte ft[8] = {
-    B00111100,
-    B01000010,
-    B10100101,
-    B10010001,
-    B10010001,
-    B10100101,
-    B01000010,
-    B00111100,
-};
+void sadLeftFace()
+{
+  matrix.drawPixel(0, 4, 1);
+  matrix.write();
+}
 
-byte fTwo[8] = {
-    B00111100,
-    B01000010,
-    B10100101,
-    B10110001,
-    B10110001,
-    B10100101,
-    B01000010,
-    B00111100,
-};
-
-byte fThree[8] = {
-    B00111100,
-    B01000010,
-    B10000101,
-    B10110001,
-    B10110001,
-    B10000101,
-    B01000010,
-    B00111100,
-};
-
-byte fFour[8] = {
-    B00111100,
-    B01000010,
-    B10010101,
-    B10010001,
-    B10010001,
-    B10010101,
-    B01000010,
-    B00111100,
-};
+void emptyFace()
+{
+  matrix.drawPixel(7, 7, 1);
+  matrix.write();
+}
 
 int currentIndex = 0;
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
   pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.println();
@@ -130,7 +108,8 @@ void setup()
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_STA_NAME, WIFI_STA_PASS);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
@@ -144,130 +123,149 @@ void setup()
 
   mqtt.setServer(MQTT_SERVER, MQTT_PORT);
   mqtt.setCallback(callback);
-  lc.shutdown(0, false);
-  lc.setIntensity(0, 8);
-  lc.clearDisplay(0);
-  displayFace(fOne);
+  matrix.setIntensity(7);
+  matrix.fillScreen(1);
+  matrix.write();
+  delay(500);
+  matrix.fillScreen(0);
+  matrix.write();
+  pinMode(uOneTrigPin, OUTPUT);
+  pinMode(uOneEchoPin, INPUT);
+  delay(500);
+  pinMode(uTwoTrigPin, OUTPUT);
+  pinMode(uTwoEchoPin, INPUT);
 }
 
 void loop()
 {
-  if (mqtt.connected() == false) {
+  if (mqtt.connected() == false)
+  {
     Serial.print("MQTT connection... ");
-    if (mqtt.connect(MQTT_NAME, MQTT_USERNAME, MQTT_PASSWORD)) {
+    if (mqtt.connect(MQTT_USERNAME, MQTT_USERNAME, MQTT_PASSWORD))
+    {
       Serial.println("connected");
-
-      value1 = EEPROM.read(addr1);
-      value2 = EEPROM.read(addr2);
-
-      int dist = ultrasonicLeft.read();
-      int dist2 = ultrasonicRight.read();
-
-      if ((dist < 20) && (value2 == 2))
-      {
-        currentIndex = goLeft(currentIndex);
-        selectFace(currentIndex);
-        sendDataToServer();
-      }
-      if ((dist < 20) && (value2 != 2))
-      {
-        EEPROM.write(addr1, 1);
-        delay(10);
-      }
-      if ((dist2 < 20) && (value1 == 1))
-      {
-        currentIndex = goRight(currentIndex);
-        selectFace(currentIndex);
-        sendDataToServer();
-      }
-      if ((dist2 < 20) && (value1 != 1))
-      {
-        EEPROM.write(addr2, 2);
-        delay(10);
-      }
-    } else {
+      sendSensorData();
+    }
+    else
+    {
       Serial.println("failed");
       delay(5000);
     }
-  } else {
+  }
+  else
+  {
     mqtt.loop();
-  }
-}
+    soundPotValue = analogRead(36);
 
-int goLeft(int idx)
-{
-  if(idx == 0) { //left most index
-    return idx;
-  } else {
-    idx -= 1;
-  }
-  return idx;
-}
+    Serial.println(soundPotValue);
 
-void selectFace(int index) {
-    switch (index)
+    if ((soundPotValue < 1023) && (soundPotValue > 0))
     {
-    case 0:
-      displayFace(fZero);
-      break;
-    case 1:
-      displayFace(ft);
-      break;
-    case 2:
-      displayFace(fTwo);
-      break;
-    case 3:
-      displayFace(fThree);
-      break;
-    case 4:
-      displayFace(fFour);
-      break;
-    default:
-      displayFace(fZero);
-      break;
+      long duration1, distance1;
+      digitalWrite(uOneTrigPin, LOW);
+      delay(50);
+      digitalWrite(uOneTrigPin, HIGH);
+      delay(50);
+      digitalWrite(uOneTrigPin, LOW);
+      duration1 = pulseIn(uOneEchoPin, HIGH);
+      distance1 = (duration1 / 2) / 29.1;
+
+      Serial.print("Sensor One: ");
+      Serial.println(distance1);
+
+      delay(100);
+
+      if ((distance1 < 20) && (distance1 > 0))
+      {
+        currentIndex += 1;
+        delay(100);
+        displayFace(currentIndex);
+      }
+
+      delay(100);
+
+      long duration2, distance2;
+      digitalWrite(uTwoTrigPin, LOW);
+      delay(50);
+      digitalWrite(uTwoTrigPin, HIGH);
+      delay(50);
+      digitalWrite(uTwoTrigPin, LOW);
+      duration2 = pulseIn(uTwoEchoPin, HIGH);
+      distance2 = (duration2 / 2) / 29.1;
+
+      Serial.print("Sensor Two: ");
+      Serial.println(distance2);
+
+      delay(100);
+
+      if ((distance2 < 20) && (distance2 > 0))
+      {
+        currentIndex -= 1;
+        delay(100);
+        displayFace(currentIndex);
+      }
+
+      delay(100);
     }
+    else
+    {
+      sendDataToServer(currentIndex);
+      delay(100);
+    }
+    delay(100);
+  }
 }
 
-void displayFace(byte* face) {
-  lc.setRow(0, 0, face[0]);
-  lc.setRow(0, 1, face[1]);
-  lc.setRow(0, 2, face[2]);
-  lc.setRow(0, 3, face[3]);
-  lc.setRow(0, 4, face[4]);
-  lc.setRow(0, 5, face[5]);
-  lc.setRow(0, 6, face[6]);
-  lc.setRow(0, 7, face[7]);
-  EEPROM.write(addr1, 0);
-  delay(10);
-  EEPROM.write(addr2, 0);
-  delay(10);
-}
-
-int goRight(int idx)
+void displayFace(int index)
 {
-  if(idx == 7) { //right most index
-    return idx;
-  } else {
-    idx += 1;
+  matrix.fillScreen(0);
+  matrix.write();
+  Serial.println(index);
+  switch (index)
+  {
+  case 0:
+    noFace();
+    break;
+  case 1:
+    happyRightFace();
+    break;
+  case 2:
+    happyLeftFace();
+    break;
+  case 3:
+    sadRightFace();
+    break;
+  case 4:
+    sadLeftFace();
+    break;
+  default:
+    emptyFace();
+    break;
   }
-  return idx;
 }
 
-void sendDataToServer() {
-  StaticJsonDocument<500> doc;
+void sendSensorData()
+{
+  StaticJsonDocument<200> doc;
 
-  JsonArray analogValues = doc.createNestedArray("analog");
-  for (int pin = 0; pin < 6; pin++) {
-    int value = analogRead(pin);
-    analogValues.add(value);
-  }
+  doc["sensor"] = "GESTURE";
+  doc["id"] = 140137;
+  doc["config"] = 64;
+  doc["active"] = true;
 
-  JsonArray digitalValues = doc.createNestedArray("digital");
-  for (int pin = 0; pin < 14; pin++) {
-    int value = digitalRead(pin);
-    digitalValues.add(value);
-  }
+  serializeJson(doc, output);
 
-  String message = serialized(doc);
-  mqtt.publish("/system", message);
+  mqtt.publish("/sensors", output);
+}
+
+void sendDataToServer(int index)
+{
+  StaticJsonDocument<1024> doc;
+
+  doc["type"] = "GESTURE";
+  doc["face"] = index;
+
+  serializeJson(doc, output);
+
+  mqtt.publish("/system", output);
 }
