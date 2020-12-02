@@ -63,26 +63,27 @@ client.on("error", function () {
 client.on('message', function(topic, message) {
   /* topic list = ['/system', '/controls', '/sensors'] */
   var action = JSON.parse(message);
+  console.log(`${topic}:${message.toString()}`);
   if (topic == process.env.SENSOR_TOPIC) {
     if (isSensorExist(message)) {
       registerNewSensor(message);
     }
-    console.log(`${topic}:${message.toString()}`);
   } else if (topic == "/system") {
     if (action.type == 'GESTURE') {
       saveSelectedFaceToFireStore(message);
-      publishLightControlMessage();
-      // saveActionToFireStore(message);
+      let lightPattern = computeLightPattern();
+      publishLightControlMessage(lightPattern, "ON");
+      saveActionToFireStore(message);
     }
-    console.log(`${topic}:${message.toString()}`);
   } else if (topic == process.env.CONTROL_TOPIC) {
     if (action.type == 'LIGHT') {
-    console.log(`${topic}:${message.toString()}`);
+      console.log(`${topic}:${message.toString()}`);
+      saveActionToFireStore(message);
     }
   }
 });
 
-function saveActionToFireStore( message) {
+function saveActionToFireStore(message) {
   let now = new Date();
   const db = cloudFirestore.collection('action');
   const doc = db.doc();
@@ -122,29 +123,91 @@ function registerNewSensor(message) {
   });
 }
 
+function computeLightPattern() {
+  let _pattern_value = 0;
+  let _face0Prop = [];
+  let _face1Prop = [];
+  let _face2Prop = [];
+  let _face3Prop = [];
+  let _face4Prop = [];
+  let _face5Prop = [];
 
-function publishLightControlMessage() {
+  let faceLogs = [];
+
+  const faceDb = cloudFirestore.collection('faceLogs');
+  faceDb.onSnapshot(snapshot => {
+    snapshot.forEach((face) => {
+      faceLogs.push(face.data());
+      if (face.data()['face'] == 0) {
+        _face0Prop.push(face.data());
+      }
+
+      if (face.data()['face'] == 1) {
+        _face1Prop.push(face.data());
+      }
+
+      if (face.data()['face'] == 2) {
+        _face2Prop.push(face.data());
+      }
+
+      if (face.data()['face'] == 3) {
+        _face3Prop.push(face.data());
+      }
+
+      if (face.data()['face'] == 4) {
+        _face4Prop.push(face.data());
+      }
+
+      if (face.data()['face'] == 5) {
+        _face5Prop.push(face.data());
+      }
+    });
+
+    console.log((_face0Prop.length / faceLogs.length) * 100);
+    console.log((_face1Prop.length / faceLogs.length) * 100);
+    console.log((_face2Prop.length / faceLogs.length) * 100);
+    console.log((_face3Prop.length / faceLogs.length) * 100);
+    console.log((_face4Prop.length / faceLogs.length) * 100);
+    console.log((_face5Prop.length / faceLogs.length) * 100);
+
+   }, err => {
+    console.log(`Error: ${err}`);
+   });
+
+  return 25;
+}
+
+async function publishLightControlMessage(pattern, action) {
   let trigg_message = {
     type: "LIGHT",
     success: true,
-    action: "ON",
-    pattern: [],
+    action: action,
+    prob: pattern,
   };
+  await sleep(1000);
   client.publish(process.env.CONTROL_TOPIC, JSON.stringify(trigg_message));
 }
 
-function isSensorExist(message) {
+async function isSensorExist(message) {
   var device = JSON.parse(message);
   let sensorRef = cloudFirestore.collection('sensor');
   let not_exist = false;
-  sensorRef.doc(device.id.toString()).get().then(function(doc){
-    if (!doc.exists) {
-      not_exist = true;
+  await sensorRef.doc(device.id.toString()).get().then(function(doc){
+    if (doc.exists) {
+      not_exist = false;
+    } else {
+      not_exist = true
     }
   }).catch(function(error) {
     console.log("Error getting document:", error);
   });
   return not_exist;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 express().get('/', function (req, res) {

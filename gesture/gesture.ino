@@ -11,6 +11,7 @@
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
+#define MQTT_USER_ID "GESTURE01"
 #define MQTT_USERNAME "ggaomyqh"
 #define MQTT_PASSWORD "3wjA27NFU3ET"
 
@@ -28,21 +29,6 @@ char output[1024];
 
 WiFiClient client;
 PubSubClient mqtt(client);
-
-void callback(char *topic, byte *payload, unsigned int length)
-{
-  DynamicJsonDocument incoming(1024);
-
-  payload[length] = '\0';
-  String topic_str = topic;
-
-  deserializeJson(incoming, (char *) payload);
-  JsonObject obj = incoming.as<JsonObject>();
-  String action = obj["action"];
-  delay(100);
-  digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
-  delay(100);
-}
 
 void noFace()
 {
@@ -91,7 +77,7 @@ void sadLeftFace()
 
 void sadFiveFace()
 {
-  matrix.drawPixel(4 , 4, 1);
+  matrix.drawPixel(4, 4, 1);
   matrix.write();
 }
 
@@ -130,7 +116,6 @@ void setup()
   Serial.println(WiFi.localIP());
 
   mqtt.setServer(MQTT_SERVER, MQTT_PORT);
-  mqtt.setCallback(callback);
   matrix.setIntensity(7);
   matrix.fillScreen(1);
   matrix.write();
@@ -149,7 +134,7 @@ void loop()
   if (mqtt.connected() == false)
   {
     Serial.print("MQTT connection... ");
-    if (mqtt.connect(MQTT_USERNAME, MQTT_USERNAME, MQTT_PASSWORD))
+    if (mqtt.connect(MQTT_USER_ID, MQTT_USERNAME, MQTT_PASSWORD))
     {
       Serial.println("connected");
       sendSensorData();
@@ -167,7 +152,7 @@ void loop()
 
     Serial.println(soundPotValue);
 
-    if (((soundPotValue < 1023) && (soundPotValue > 0)) || (soundPotValue == 4095))
+    if (((soundPotValue < 2047) && (soundPotValue > 0)) || (soundPotValue == 4095))
     {
       long duration1, distance1;
       digitalWrite(uOneTrigPin, LOW);
@@ -185,7 +170,8 @@ void loop()
 
       if ((distance1 < 20) && (distance1 > 0))
       {
-        if ((currentIndex >= 0) && (currentIndex != 5)) {
+        if ((currentIndex >= 0) && (currentIndex != 5))
+        {
           currentIndex += 1;
         }
         delay(100);
@@ -210,7 +196,8 @@ void loop()
 
       if ((distance2 < 20) && (distance2 > 0))
       {
-        if ((currentIndex <= 5) && (currentIndex != 0)) {
+        if ((currentIndex <= 5) && (currentIndex != 0))
+        {
           currentIndex -= 1;
         }
         delay(100);
@@ -221,10 +208,8 @@ void loop()
     }
     else
     {
+      delay(100);
       sendDataToServer(currentIndex);
-      delay(100);
-      resetSystem();
-      delay(100);
     }
     delay(100);
   }
@@ -276,18 +261,52 @@ void sendSensorData()
 }
 
 void sendDataToServer(int index)
+
 {
+  long prob = 0;
   StaticJsonDocument<1024> doc;
 
   doc["type"] = "GESTURE";
   doc["face"] = index;
-  doc["value"] = 16.6;
+
+  switch (index)
+  {
+  case 0:
+    prob = 0.04;
+    doc["value"] = prob;
+    break;
+  case 1:
+    prob = 2.80;
+    doc["value"] = prob;
+    break;
+  case 2:
+    prob = 5.56;
+    doc["value"] = prob;
+    break;
+  case 3:
+    prob = 8.32;
+    doc["value"] = prob;
+    break;
+  case 4:
+    prob = 11.08;
+    doc["value"] = prob;
+    break;
+  case 5:
+    prob = 13.84;
+    doc["value"] = prob;
+    break;
+  default:
+    prob = 16.6;
+    doc["value"] = prob;
+    break;
+  }
 
   serializeJson(doc, output);
 
   mqtt.publish("/system", output);
 }
 
-void resetSystem() {
+void resetSystem()
+{
   currentIndex = 0;
 }
