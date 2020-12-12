@@ -219,7 +219,7 @@ void displayFace(int index)
 {
   matrix.fillScreen(0);
   matrix.write();
-  Serial.println(index);
+  delay(100);
   switch (index)
   {
   case 0:
@@ -301,7 +301,11 @@ void sendDataToServer(int index)
     break;
   }
 
+  delay(100);
+
   serializeJson(doc, output);
+
+  delay(100);
 
   mqtt.publish("/system", output);
 }

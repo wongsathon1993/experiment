@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const mqtt = require("mqtt");
 const admin = require("firebase-admin");
+const app = express()
 
 const port = process.env.PORT;
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -85,11 +86,11 @@ client.on('message', function(topic, message) {
 
 function saveActionToFireStore(message) {
   let now = new Date();
-  const db = cloudFirestore.collection('action');
+  const db = cloudFirestore.collection('actions');
   const doc = db.doc();
 
   doc.set({
-    topic: 'action',
+    topic: 'actions',
     action: message.toString(),
     createAt: now.toLocaleString(),
     timestamp: now.valueOf(),
@@ -102,7 +103,7 @@ function saveSelectedFaceToFireStore(message) {
   const doc = db.doc();
 
   doc.set({
-    topic: 'face',
+    topic: 'faces',
     selectedFace: message.toString(),
     createAt: now.toLocaleString(),
     timestamp: now.valueOf(),
@@ -210,8 +211,9 @@ function sleep(ms) {
   });
 }
 
-express().get('/', function (req, res) {
+app.get('/heathZ', function (req, res) {
   console.log("don't sleep")
+  return res.sendStatus(200);
 })
 
-express().listen(port, () => console.log(`Experiment app listening on port ${port}!`));
+app.listen(port, () => console.log(`Experiment app listening on port ${port}!`));
