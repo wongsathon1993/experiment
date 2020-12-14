@@ -32,7 +32,7 @@ client.on('connect', function() {
     }
   });
 
-  // contorls topic
+  // controls topic
   client.subscribe(process.env.CONTROL_TOPIC, function(err) {
     if (!err) {
       console.log(`subscribed to ${process.env.CONTROL_TOPIC}`)
