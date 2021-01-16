@@ -6,8 +6,8 @@
 #include <Adafruit_GFX.h>
 #include <Max72xxPanel.h>
 
-#define WIFI_STA_NAME "MoMieNote8"
-#define WIFI_STA_PASS "MoMie5027vivek"
+#define WIFI_STA_NAME "iPhone"
+#define WIFI_STA_PASS "choonhavan"
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319

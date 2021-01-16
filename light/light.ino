@@ -152,19 +152,19 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
     }
 }
 
-void ChangePalettePeriodically(int secondHand)
+void ChangePalettePeriodically(int probability)
 {
-    if( (secondHand >=  0) (secondHand <=  9))  { currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; }
-    if( secondHand == 10)  { currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  }
-    if( secondHand == 15)  { currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; }
-    if( secondHand == 20)  { SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; }
-    if( secondHand == 25)  { SetupTotallyRandomPalette();              currentBlending = LINEARBLEND; }
-    if( secondHand == 30)  { SetupBlackAndWhiteStripedPalette();       currentBlending = NOBLEND; }
-    if( secondHand == 35)  { SetupBlackAndWhiteStripedPalette();       currentBlending = LINEARBLEND; }
-    if( secondHand == 40)  { currentPalette = CloudColors_p;           currentBlending = LINEARBLEND; }
-    if( secondHand == 45)  { currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; }
-    if( secondHand == 50)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = NOBLEND;  }
-    if( secondHand == 55)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = LINEARBLEND; }
+    if( (probability >=  0) (probability <=  9))  { currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; }
+    if( (probability >=  10) (probability <=  19))  { currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  }
+    if( (probability >=  20) (probability <=  29))  { currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; }
+    if( (probability >=  30) (probability <=  39))  { SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; }
+    if( (probability >=  40) (probability <=  49))  { SetupTotallyRandomPalette();              currentBlending = LINEARBLEND; }
+    if( (probability >=  50) (probability <=  59))  { SetupBlackAndWhiteStripedPalette();       currentBlending = NOBLEND; }
+    if( (probability >=  60) (probability <=  69))  { SetupBlackAndWhiteStripedPalette();       currentBlending = LINEARBLEND; }
+    if( (probability >=  70) (probability <=  79))  { currentPalette = CloudColors_p;           currentBlending = LINEARBLEND; }
+    if( (probability >=  80) (probability <=  89))  { currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; }
+    if( (probability >=  90) (probability <=  99))  { currentPalette = myRedWhiteBluePalette_p; currentBlending = NOBLEND;  }
+    if( (probability >=  100))  { currentPalette = myRedWhiteBluePalette_p; currentBlending = LINEARBLEND; }
 }
 
 void SetupTotallyRandomPalette()
