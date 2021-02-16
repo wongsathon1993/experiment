@@ -3,6 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const mqtt = require("mqtt");
 const admin = require("firebase-admin");
+const Sentry = require("@sentry/node");
+const Tracing = require("@sentry/tracing");
 const app = express();
 
 const port = process.env.PORT;
@@ -15,6 +17,12 @@ const base64ToJSON = (s) =>
 admin.initializeApp({
   credential: admin.credential.cert(base64ToJSON(serviceAccount)),
   databaseURL: fireStore,
+});
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  env: process.env.STAGE
 });
 
 const cloudFirestore = admin.firestore();
@@ -71,11 +79,24 @@ client.on("message", function (topic, message) {
         }
         break;
       case process.env.SYSTEM_TOPIC:
+        const transaction = Sentry.startTransaction({
+          op: "experiment",
+          name: "System Transaction",
+        });
+
         if (action.type == "GESTURE") {
           saveSelectedFaceToFireStore(message);
-          let lightPattern = computeLightPattern();
-          publishLightControlMessage(lightPattern, "ON");
-          saveActionToFireStore(message);
+          setTimeout(() => {
+            try {
+              let lightPattern = computeLightPattern();
+              publishLightControlMessage(lightPattern, "ON");
+              saveActionToFireStore(message);
+            } catch (e) {
+              Sentry.captureException(e);
+            } finally {
+              transaction.finish();
+            }
+          }, 99);
         }
         break;
       case process.env.SENSOR_TOPIC:
@@ -179,18 +200,18 @@ function computeLightPattern() {
           _face5Prop.push(face.data());
         }
       });
-
-      console.log((_face0Prop.length / faceLogs.length) * 100);
-      console.log((_face1Prop.length / faceLogs.length) * 100);
-      console.log((_face2Prop.length / faceLogs.length) * 100);
-      console.log((_face3Prop.length / faceLogs.length) * 100);
-      console.log((_face4Prop.length / faceLogs.length) * 100);
-      console.log((_face5Prop.length / faceLogs.length) * 100);
     },
     (err) => {
       console.log(`Error: ${err}`);
     }
   );
+
+  console.log((_face0Prop.length / faceLogs.length) * 100);
+  console.log((_face1Prop.length / faceLogs.length) * 100);
+  console.log((_face2Prop.length / faceLogs.length) * 100);
+  console.log((_face3Prop.length / faceLogs.length) * 100);
+  console.log((_face4Prop.length / faceLogs.length) * 100);
+  console.log((_face5Prop.length / faceLogs.length) * 100);
 
   return 25;
 }
@@ -232,7 +253,7 @@ function sleep(ms) {
   });
 }
 
-app.get("/healthZ", function (req, res) {
+app.get("/healthZ", function (_, res) {
   console.log("don't sleep");
   return res.sendStatus(200);
 });

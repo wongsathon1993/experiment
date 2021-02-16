@@ -4,10 +4,10 @@
 #include <PubSubClient.h>
 #include <FastLED.h>
 
-#define LED_PIN     5
-#define NUM_LEDS    24
-#define BRIGHTNESS  255
-#define LED_TYPE    WS2811
+#define LED_PIN 5
+#define NUM_LEDS 24
+#define BRIGHTNESS 255
+#define LED_TYPE WS2811
 #define COLOR_ORDER GRB
 
 #define WIFI_STA_NAME "MoMieNote8"
@@ -24,7 +24,7 @@
 CRGB leds[NUM_LEDS];
 
 CRGBPalette16 currentPalette;
-TBlendType    currentBlending;
+TBlendType currentBlending;
 
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
@@ -36,42 +36,44 @@ PubSubClient mqtt(client);
 
 char output[1024];
 
-
 void callback(char *topic, byte *payload, unsigned int length)
 {
 
-  DynamicJsonDocument incoming(1024);
-  Serial.println(topic);
+    DynamicJsonDocument incoming(1024);
+    Serial.println(topic);
 
-  payload[length] = '\0';
-  String topic_str = topic;
+    payload[length] = '\0';
+    String topic_str = topic;
 
-  deserializeJson(incoming, (char *) payload);
-  JsonObject obj = incoming.as<JsonObject>();
-  String action = obj["action"];
-  int prob = obj["prob"];
-  Serial.println(action);
-  delay(1000);
-  digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
-  delay(1000);
-  if (action == "ON") {
-    ChangePalettePeriodically(prob);
+    deserializeJson(incoming, (char *)payload);
+    JsonObject obj = incoming.as<JsonObject>();
+    String action = obj["action"];
+    int prob = obj["prob"];
+    Serial.println(action);
+    delay(1000);
+    digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
+    delay(1000);
+    if (action == "ON")
+    {
+        ChangePalettePeriodically(prob);
 
-    static uint8_t startIndex = 0;
-    startIndex = startIndex + 1; /* motion speed */
+        static uint8_t startIndex = 0;
+        startIndex = startIndex + 1; /* motion speed */
 
-    FillLEDsFromPaletteColors(startIndex);
+        FillLEDsFromPaletteColors(startIndex);
 
-    FastLED.show();
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
-  } else {
-    FastLED.clear();
-  }
+        FastLED.show();
+        FastLED.delay(1000 / UPDATES_PER_SECOND);
+    }
+    else
+    {
+        FastLED.clear();
+    }
 }
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
 
     Serial.println();
@@ -97,9 +99,9 @@ void setup()
 
     mqtt.setServer(MQTT_SERVER, MQTT_PORT);
     mqtt.setCallback(callback);
-    delay( 3000 ); // power-up safety delay
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-    FastLED.setBrightness(  BRIGHTNESS );
+    delay(3000); // power-up safety delay
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+    FastLED.setBrightness(BRIGHTNESS);
 
     currentPalette = RainbowColors_p;
     currentBlending = LINEARBLEND;
@@ -130,53 +132,99 @@ void loop()
 
 void sendSensorData()
 {
-  StaticJsonDocument<1024> doc;
+    StaticJsonDocument<1024> doc;
 
-  doc["sensor"] = "LIGHT";
-  doc["id"] = 5027;
-  doc["config"] = 24;
-  doc["active"] = true;
+    doc["sensor"] = "LIGHT";
+    doc["id"] = 5027;
+    doc["config"] = 24;
+    doc["active"] = true;
 
-  serializeJson(doc, output);
+    serializeJson(doc, output);
 
-  mqtt.publish("/sensors", output);
+    mqtt.publish("/sensors", output);
 }
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
+void FillLEDsFromPaletteColors(uint8_t colorIndex)
 {
     uint8_t brightness = 255;
 
-    for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+    for (int i = 0; i < NUM_LEDS; i++)
+    {
+        leds[i] = ColorFromPalette(currentPalette, colorIndex, brightness, currentBlending);
         colorIndex += 3;
     }
 }
 
 void ChangePalettePeriodically(int probability)
 {
-    if( (probability >=  0) (probability <=  9))  { currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; }
-    if( (probability >=  10) (probability <=  19))  { currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  }
-    if( (probability >=  20) (probability <=  29))  { currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; }
-    if( (probability >=  30) (probability <=  39))  { SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; }
-    if( (probability >=  40) (probability <=  49))  { SetupTotallyRandomPalette();              currentBlending = LINEARBLEND; }
-    if( (probability >=  50) (probability <=  59))  { SetupBlackAndWhiteStripedPalette();       currentBlending = NOBLEND; }
-    if( (probability >=  60) (probability <=  69))  { SetupBlackAndWhiteStripedPalette();       currentBlending = LINEARBLEND; }
-    if( (probability >=  70) (probability <=  79))  { currentPalette = CloudColors_p;           currentBlending = LINEARBLEND; }
-    if( (probability >=  80) (probability <=  89))  { currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; }
-    if( (probability >=  90) (probability <=  99))  { currentPalette = myRedWhiteBluePalette_p; currentBlending = NOBLEND;  }
-    if( (probability >=  100))  { currentPalette = myRedWhiteBluePalette_p; currentBlending = LINEARBLEND; }
+    if ((probability >= 0) && (probability <= 9))
+    {
+        currentPalette = RainbowColors_p;
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 10) && (probability <= 19))
+    {
+        currentPalette = RainbowStripeColors_p;
+        currentBlending = NOBLEND;
+    }
+    if ((probability >= 20) && (probability <= 29))
+    {
+        currentPalette = RainbowStripeColors_p;
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 30) && (probability <= 39))
+    {
+        SetupPurpleAndGreenPalette();
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 40) && (probability <= 49))
+    {
+        SetupTotallyRandomPalette();
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 50) && (probability <= 59))
+    {
+        SetupBlackAndWhiteStripedPalette();
+        currentBlending = NOBLEND;
+    }
+    if ((probability >= 60) && (probability <= 69))
+    {
+        SetupBlackAndWhiteStripedPalette();
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 70) && (probability <= 79))
+    {
+        currentPalette = CloudColors_p;
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 80) && (probability <= 89))
+    {
+        currentPalette = PartyColors_p;
+        currentBlending = LINEARBLEND;
+    }
+    if ((probability >= 90) && (probability <= 99))
+    {
+        currentPalette = myRedWhiteBluePalette_p;
+        currentBlending = NOBLEND;
+    }
+    if ((probability >= 100))
+    {
+        currentPalette = myRedWhiteBluePalette_p;
+        currentBlending = LINEARBLEND;
+    }
 }
 
 void SetupTotallyRandomPalette()
 {
-    for( int i = 0; i < 24; i++) {
+    for (int i = 0; i < 24; i++)
+    {
         currentPalette[i] = CHSV(random8(), 255, random8());
     }
 }
 
 void SetupBlackAndWhiteStripedPalette()
 {
-    fill_solid(currentPalette,18, CRGB::Black);
+    fill_solid(currentPalette, 18, CRGB::Black);
     currentPalette[0] = CRGB::White;
     currentPalette[4] = CRGB::White;
     currentPalette[8] = CRGB::White;
@@ -188,34 +236,33 @@ void SetupBlackAndWhiteStripedPalette()
 void SetupPurpleAndGreenPalette()
 {
     CRGB purple = CHSV(HUE_PURPLE, 255, 255);
-    CRGB green  = CHSV(HUE_GREEN, 255, 255);
-    CRGB black  = CRGB::Black;
+    CRGB green = CHSV(HUE_GREEN, 255, 255);
+    CRGB black = CRGB::Black;
 
     currentPalette = CRGBPalette16(
-        green,  green,  black,  black,
-        purple, purple, black,  black,
-        green,  green,  black,  black,
-        purple, purple, black,  black
-    );
+        green, green, black, black,
+        purple, purple, black, black,
+        green, green, black, black,
+        purple, purple, black, black, );
 }
 const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
-{
-    CRGB::Red,
-    CRGB::Gray, // 'white' is too bright compared to red and blue
-    CRGB::Blue,
-    CRGB::Black,
+    {
+        CRGB::Red,
+        CRGB::Gray, // 'white' is too bright compared to red and blue
+        CRGB::Blue,
+        CRGB::Black,
 
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Black,
+        CRGB::Red,
+        CRGB::Gray,
+        CRGB::Blue,
+        CRGB::Black,
 
-    CRGB::Red,
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Blue,
-    CRGB::Black,
-    CRGB::Black
+        CRGB::Red,
+        CRGB::Red,
+        CRGB::Gray,
+        CRGB::Gray,
+        CRGB::Blue,
+        CRGB::Blue,
+        CRGB::Black,
+        CRGB::Black,
 };
