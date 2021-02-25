@@ -49,6 +49,12 @@ void callback(char *topic, byte *payload, unsigned int length)
     JsonObject obj = incoming.as<JsonObject>();
     String action = obj["action"];
     int prob = obj["prob"];
+
+    JsonArray array = obj['list'];
+    for(JsonVariant v : array) {
+        Serial.println(v.as<int>());
+    }
+
     Serial.println(action);
     delay(1000);
     digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
@@ -155,7 +161,7 @@ void FillLEDsFromPaletteColors(uint8_t colorIndex)
     }
 }
 
-void ChangePalettePeriodically(int probability)
+void ChangePalettePeriodically(JsonArray probability)
 {
     if ((probability >= 0) && (probability <= 9))
     {
@@ -261,6 +267,7 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
         CRGB::Red,
         CRGB::Gray,
         CRGB::Gray,
+
         CRGB::Blue,
         CRGB::Blue,
         CRGB::Black,

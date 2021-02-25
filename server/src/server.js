@@ -161,7 +161,6 @@ function registerNewSensor(message) {
 }
 
 function computeLightPattern() {
-  let _pattern_value = 0;
   let _face0Prop = [];
   let _face1Prop = [];
   let _face2Prop = [];
@@ -176,27 +175,27 @@ function computeLightPattern() {
     (snapshot) => {
       snapshot.forEach((face) => {
         faceLogs.push(face.data());
-        if (face.data()["face"] == 0) {
+        if (face.data()["color"] == "yellow") {
           _face0Prop.push(face.data());
         }
 
-        if (face.data()["face"] == 1) {
+        if (face.data()["color"] == "red") {
           _face1Prop.push(face.data());
         }
 
-        if (face.data()["face"] == 2) {
+        if (face.data()["color"] == "blue") {
           _face2Prop.push(face.data());
         }
 
-        if (face.data()["face"] == 3) {
+        if (face.data()["color"] == "green") {
           _face3Prop.push(face.data());
         }
 
-        if (face.data()["face"] == 4) {
+        if (face.data()["color"] == "purple") {
           _face4Prop.push(face.data());
         }
 
-        if (face.data()["face"] == 5) {
+        if (face.data()["color"] == "orange") {
           _face5Prop.push(face.data());
         }
       });
@@ -213,7 +212,60 @@ function computeLightPattern() {
   console.log((_face4Prop.length / faceLogs.length) * 100);
   console.log((_face5Prop.length / faceLogs.length) * 100);
 
-  return 25;
+  // genterate list of 24
+
+  let pattern_list = [];
+  var yellow = (_face0Prop.length / faceLogs.length) * 100;
+  var yellow_length = Math.round((yellow/100) *24);
+
+  for(var i = 0; i < yellow_length; i++) {
+    pattern_list.push(0);
+  }
+
+  var red = (_face1Prop.length / faceLogs.length) * 100;
+  var red_length =  Math.round((red/100) *24);
+
+  for(var j = 0; j < red_length; j++) {
+    pattern_list.push(1);
+  }
+
+  var blue = (_face2Prop.length / faceLogs.length) * 100;
+  var blue_length =  Math.round((blue/100) *24);
+
+  for(var k = 0; k < blue_length; k++) {
+    pattern_list.push(2);
+  }
+
+  var green = (_face3Prop.length / faceLogs.length) * 100;
+  var green_length =  Math.round((green/100) *24);
+
+  for(var l = 0; l < green_length; l++) {
+    pattern_list.push(3);
+  }
+
+  var purple = (_face4Prop.length / faceLogs.length) * 100;
+  var purple_length =  Math.round((purple/100) *24);
+
+  for(var m = 0; m < purple_length; m++) {
+    pattern_list.push(4);
+  }
+
+  var orange = (_face5Prop.length / faceLogs.length) * 100;
+  var orange_length =  Math.round((orange/100) *24);
+
+  for(var n = 0; n < orange_length; n++) {
+    pattern_list.push(5);
+  }
+
+  if (pattern_list.length < 24) {
+    while(pattern_list.length < 24) {
+      pattern_list.push(9)
+    }
+  } else if (pattern_list.length > 24){
+    pattern_list.slice(0,23);
+  }
+
+  return pattern_list;
 }
 
 async function publishLightControlMessage(pattern, action) {
@@ -221,7 +273,8 @@ async function publishLightControlMessage(pattern, action) {
     type: "LIGHT",
     success: true,
     action: action,
-    prob: pattern,
+    prob: 25,
+    list: pattern,
   };
   await sleep(500);
   client.publish(process.env.CONTROL_TOPIC, JSON.stringify(trigg_message));

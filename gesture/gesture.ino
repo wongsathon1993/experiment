@@ -272,32 +272,31 @@ void sendDataToServer(int index)
   switch (index)
   {
   case 0:
-    prob = 0.04;
-    doc["value"] = prob;
+    doc["value"] = index;
+    doc["color"] = "yellow"
     break;
   case 1:
-    prob = 2.80;
-    doc["value"] = prob;
+     doc["value"] = index;
+     doc["color"] = "red"
     break;
   case 2:
-    prob = 5.56;
-    doc["value"] = prob;
+     doc["value"] = index;
+     doc["color"] = "blue"
     break;
   case 3:
-    prob = 8.32;
-    doc["value"] = prob;
+     doc["value"] = index;
+     doc["color"] = "green"
     break;
   case 4:
-    prob = 11.08;
-    doc["value"] = prob;
+     doc["value"] = index;
+     doc["color"] = "purple"
     break;
   case 5:
-    prob = 13.84;
-    doc["value"] = prob;
+     doc["value"] = index;
+     doc["color"] = "orange"
     break;
   default:
-    prob = 16.6;
-    doc["value"] = prob;
+    doc["value"] = 6;;
     break;
   }
 
