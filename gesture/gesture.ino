@@ -6,8 +6,8 @@
 #include <Adafruit_GFX.h>
 #include <Max72xxPanel.h>
 
-#define WIFI_STA_NAME "iPhone"
-#define WIFI_STA_PASS "choonhavan"
+#define WIFI_STA_NAME "" //change to your own ssid
+#define WIFI_STA_PASS "" //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -21,7 +21,7 @@ const int uOneEchoPin = 26;
 const int uTwoTrigPin = 17;
 const int uTwoEchoPin = 16;
 
-int soundPotValue;
+int soundPortValue;
 
 Max72xxPanel matrix = Max72xxPanel(5, 1, 1);
 
@@ -36,54 +36,175 @@ void noFace()
   matrix.write();
 }
 
-void happyRightFace()
+void happyFace()
 {
-  matrix.drawPixel(3, 2, 1);
-  matrix.drawPixel(5, 2, 1); //eye
-  matrix.drawPixel(2, 3, 1);
-  matrix.drawPixel(2, 4, 1);
+  matrix.drawPixel(0, 0, 1);
+  matrix.drawPixel(1, 0, 1); //eyebrown
+  matrix.drawPixel(2, 0, 1);
+
+  matrix.drawPixel(5, 0, 1);
+  matrix.drawPixel(6, 0, 1);
+  matrix.drawPixel(7, 0, 1); //eyebrown
+
+  matrix.drawPixel(1, 2, 1);
+
+  matrix.drawPixel(6, 2, 1);
+
+  matrix.drawPixel(1, 3, 1);
+  matrix.drawPixel(3, 3, 1); //nose
+
+  matrix.drawPixel(6, 3, 1);
+
+  matrix.drawPixel(2, 5, 1);
+  matrix.drawPixel(5, 5, 1);
+
+  matrix.drawPixel(3, 6, 1);
+  matrix.drawPixel(4, 6, 1);
+  matrix.write();
+}
+
+void sadFace()
+{
+  matrix.drawPixel(0, 0, 1);
+  matrix.drawPixel(1, 0, 1); //eyebrown
+  matrix.drawPixel(2, 0, 1);
+
+  matrix.drawPixel(5, 0, 1);
+  matrix.drawPixel(6, 0, 1);
+  matrix.drawPixel(7, 0, 1); //eyebrown
+
+  matrix.drawPixel(0, 2, 1);
+  matrix.drawPixel(1, 2, 1);
+  matrix.drawPixel(2, 2, 1);
+
+  matrix.drawPixel(5, 2, 1);
+  matrix.drawPixel(6, 2, 1);
+  matrix.drawPixel(7, 2, 1);
+
+  matrix.drawPixel(1, 3, 1);
+
+  matrix.drawPixel(6, 3, 1); //nose
+
+  matrix.drawPixel(1, 4, 1);
+
+  matrix.drawPixel(4, 4, 1);
+  matrix.drawPixel(6, 4, 1);
+
+  matrix.drawPixel(3, 6, 1);
+  matrix.drawPixel(4, 6, 1);
+
+  matrix.drawPixel(2, 7, 1);
+  matrix.drawPixel(5, 7, 1);
+  matrix.write();
+}
+
+void normalFace()
+{
+  matrix.drawPixel(0, 0, 1);
+  matrix.drawPixel(1, 0, 1); //eyebrown
+  matrix.drawPixel(2, 0, 1);
+
+  matrix.drawPixel(5, 0, 1);
+  matrix.drawPixel(6, 0, 1);
+  matrix.drawPixel(7, 0, 1); //eyebrown
+
+  matrix.drawPixel(1, 2, 1);
+
+  matrix.drawPixel(6, 2, 1);
+
+  matrix.drawPixel(1, 3, 1);
+  matrix.drawPixel(3, 3, 1); //nose
+
+  matrix.drawPixel(6, 3, 1);
+
   matrix.drawPixel(3, 5, 1);
-  matrix.drawPixel(5, 5, 1); //eye
+  matrix.drawPixel(4, 5, 1);
   matrix.write();
 }
 
-void happyLeftFace()
+void boredFace()
 {
-  matrix.drawPixel(2, 2, 1);
-  matrix.drawPixel(5, 2, 1); //eye
-  matrix.drawPixel(4, 3, 1);
+  matrix.drawPixel(0, 0, 1);
+  matrix.drawPixel(1, 0, 1); //eyebrown
+  matrix.drawPixel(2, 0, 1);
+
+  matrix.drawPixel(5, 0, 1);
+  matrix.drawPixel(6, 0, 1);
+  matrix.drawPixel(7, 0, 1); //eyebrown
+
+  matrix.drawPixel(1, 2, 1);
+
+  matrix.drawPixel(6, 2, 1);
+
+  matrix.drawPixel(1, 3, 1);
+
+  matrix.drawPixel(6, 3, 1);
+
   matrix.drawPixel(4, 4, 1);
+
+  matrix.drawPixel(2, 6, 1);
+  matrix.drawPixel(3, 6, 1);
+  matrix.drawPixel(4, 6, 1);
+  matrix.drawPixel(5, 6, 1);
+  matrix.write();
+}
+
+void angryFace()
+{
+  matrix.drawPixel(0, 0, 1);
+  matrix.drawPixel(1, 0, 1); //eyebrown
+
+  matrix.drawPixel(6, 0, 1);
+  matrix.drawPixel(7, 0, 1); //eyebrown
+
+  matrix.drawPixel(2, 1, 1);
+
+  matrix.drawPixel(5, 1, 1);
+
+  matrix.drawPixel(1, 2, 1);
+
+  matrix.drawPixel(6, 2, 1);
+
+  matrix.drawPixel(1, 3, 1);
+  matrix.drawPixel(3, 3, 1); //nose
+
+  matrix.drawPixel(6, 3, 1);
+
+  matrix.drawPixel(3, 5, 1);
+  matrix.drawPixel(4, 5, 1);
+
+  matrix.drawPixel(2, 6, 1);
+  matrix.drawPixel(5, 6, 1);
+
+  matrix.drawPixel(1, 7, 1);
+  matrix.drawPixel(6, 7, 1);
+  matrix.write();
+}
+
+void anxiousFace()
+{
+  matrix.drawPixel(0, 0, 1);
+  matrix.drawPixel(1, 0, 1); //eyebrown
+
+  matrix.drawPixel(6, 0, 1);
+  matrix.drawPixel(7, 0, 1); //eyebrown
+
+  matrix.drawPixel(1, 2, 1);
+
+  matrix.drawPixel(6, 2, 1);
+
+  matrix.drawPixel(1, 3, 1);
+  matrix.drawPixel(4, 3, 1); //nose
+
+  matrix.drawPixel(6, 3, 1);
+
   matrix.drawPixel(2, 5, 1);
-  matrix.drawPixel(5, 5, 1); //eye
-  matrix.write();
-}
+  matrix.drawPixel(5, 5, 1);
 
-void sadRightFace()
-{
-  matrix.drawPixel(2, 2, 1);
-  matrix.drawPixel(5, 2, 1); //eye
-  matrix.drawPixel(3, 3, 1);
-  matrix.drawPixel(3, 4, 1);
-  matrix.drawPixel(2, 5, 1);
-  matrix.drawPixel(5, 5, 1); //eye
-  matrix.write();
-}
-
-void sadLeftFace()
-{
-  matrix.drawPixel(0, 4, 1);
-  matrix.write();
-}
-
-void sadFiveFace()
-{
-  matrix.drawPixel(4, 4, 1);
-  matrix.write();
-}
-
-void emptyFace()
-{
-  matrix.drawPixel(7, 7, 1);
+  matrix.drawPixel(1, 6, 1);
+  matrix.drawPixel(3, 6, 1);
+  matrix.drawPixel(4, 6, 1);
+  matrix.drawPixel(6, 6, 1);
   matrix.write();
 }
 
@@ -148,11 +269,11 @@ void loop()
   else
   {
     mqtt.loop();
-    soundPotValue = analogRead(36);
+    soundPortValue = analogRead(36);
 
-    Serial.println(soundPotValue);
+    Serial.println(soundPortValue);
 
-    if (((soundPotValue < 2047) && (soundPotValue > 0)) || (soundPotValue == 4095))
+    if (((soundPortValue < 2047) && (soundPortValue > 0)) || (soundPortValue == 4095))
     {
       long duration1, distance1;
       digitalWrite(uOneTrigPin, LOW);
@@ -223,25 +344,25 @@ void displayFace(int index)
   switch (index)
   {
   case 0:
-    noFace();
+    happyFace();
     break;
   case 1:
-    happyRightFace();
+    sadFace();
     break;
   case 2:
-    happyLeftFace();
+    normalFace();
     break;
   case 3:
-    sadRightFace();
+    boredFace();
     break;
   case 4:
-    sadLeftFace();
+    angryFace();
     break;
   case 5:
-    sadFiveFace();
+    anxiousFace();
     break;
   default:
-    emptyFace();
+    noFace();
     break;
   }
 }
@@ -272,31 +393,32 @@ void sendDataToServer(int index)
   switch (index)
   {
   case 0:
-    doc["value"] = index;
-    doc["color"] = "yellow"
+    doc["value"] = 0.1;
+    doc["color"] = "yellow";
     break;
   case 1:
-     doc["value"] = index;
-     doc["color"] = "red"
+     doc["value"] = 0.2;
+     doc["color"] = "blue";
     break;
   case 2:
-     doc["value"] = index;
-     doc["color"] = "blue"
+     doc["value"] = 0.3;
+     doc["color"] = "green";
     break;
   case 3:
-     doc["value"] = index;
-     doc["color"] = "green"
+     doc["value"] = 0.5;
+     doc["color"] = "orange";
     break;
   case 4:
-     doc["value"] = index;
-     doc["color"] = "purple"
+     doc["value"] = 0.8;
+     doc["color"] = "red";
     break;
   case 5:
-     doc["value"] = index;
-     doc["color"] = "orange"
+     doc["value"] = 1.3;
+     doc["color"] = "purple";
     break;
   default:
-    doc["value"] = 6;;
+    doc["value"] = 9;
+    doc["color"] = "black";
     break;
   }
 

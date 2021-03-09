@@ -22,7 +22,7 @@ admin.initializeApp({
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   tracesSampleRate: 1.0,
-  env: process.env.STAGE
+  env: process.env.STAGE,
 });
 
 const cloudFirestore = admin.firestore();
@@ -88,8 +88,7 @@ client.on("message", function (topic, message) {
           saveSelectedFaceToFireStore(message);
           setTimeout(() => {
             try {
-              let lightPattern = computeLightPattern();
-              publishLightControlMessage(lightPattern, "ON");
+              computeLightPattern();
               saveActionToFireStore(message);
             } catch (e) {
               Sentry.captureException(e);
@@ -99,7 +98,7 @@ client.on("message", function (topic, message) {
           }, 99);
         }
         break;
-      case process.env.SENSOR_TOPIC:
+      case process.env.CONTROL_TOPIC:
         if (action.type == "LIGHT") {
           console.log(`${topic}:${message.toString()}`);
           saveActionToFireStore(message);
@@ -175,97 +174,95 @@ function computeLightPattern() {
     (snapshot) => {
       snapshot.forEach((face) => {
         faceLogs.push(face.data());
-        if (face.data()["color"] == "yellow") {
+        var data = JSON.parse(face.data()["selectedFace"]);
+        if (data["color"] == "yellow") {
           _face0Prop.push(face.data());
         }
 
-        if (face.data()["color"] == "red") {
+        if (data["color"] == "red") {
           _face1Prop.push(face.data());
         }
 
-        if (face.data()["color"] == "blue") {
+        if (data["color"] == "blue") {
           _face2Prop.push(face.data());
         }
 
-        if (face.data()["color"] == "green") {
+        if (data["color"] == "green") {
           _face3Prop.push(face.data());
         }
 
-        if (face.data()["color"] == "purple") {
+        if (data["color"] == "purple") {
           _face4Prop.push(face.data());
         }
 
-        if (face.data()["color"] == "orange") {
+        if (data["color"] == "orange") {
           _face5Prop.push(face.data());
         }
       });
+
+      // genterate list of 24
+
+      var pattern_list = [];
+
+      console.log(pattern_list);
+
+      var yellow = (_face0Prop.length / faceLogs.length) * 100;
+      var yellow_length = Math.round((yellow / 100) * 24);
+
+      for (var i = 0; i < yellow_length; i++) {
+        pattern_list.push(0);
+      }
+
+      var red = (_face1Prop.length / faceLogs.length) * 100;
+      var red_length = Math.round((red / 100) * 24);
+
+      for (var j = 0; j < red_length; j++) {
+        pattern_list.push(1);
+      }
+
+      var blue = (_face2Prop.length / faceLogs.length) * 100;
+      var blue_length = Math.round((blue / 100) * 24);
+
+      for (var k = 0; k < blue_length; k++) {
+        pattern_list.push(2);
+      }
+
+      var green = (_face3Prop.length / faceLogs.length) * 100;
+      var green_length = Math.round((green / 100) * 24);
+
+      for (var l = 0; l < green_length; l++) {
+        pattern_list.push(3);
+      }
+
+      var purple = (_face4Prop.length / faceLogs.length) * 100;
+      var purple_length = Math.round((purple / 100) * 24);
+
+      for (var m = 0; m < purple_length; m++) {
+        pattern_list.push(4);
+      }
+
+      var orange = (_face5Prop.length / faceLogs.length) * 100;
+      var orange_length = Math.round((orange / 100) * 24);
+
+      for (var n = 0; n < orange_length; n++) {
+        pattern_list.push(5);
+      }
+
+      if (pattern_list.length < 24) {
+        while (pattern_list.length < 24) {
+          pattern_list.push(9);
+        }
+      } else if (pattern_list.length > 24) {
+        pattern_list.slice(0, 23);
+      }
+
+      publishLightControlMessage(pattern_list, "ON");
     },
     (err) => {
       console.log(`Error: ${err}`);
+      return [];
     }
   );
-
-  console.log((_face0Prop.length / faceLogs.length) * 100);
-  console.log((_face1Prop.length / faceLogs.length) * 100);
-  console.log((_face2Prop.length / faceLogs.length) * 100);
-  console.log((_face3Prop.length / faceLogs.length) * 100);
-  console.log((_face4Prop.length / faceLogs.length) * 100);
-  console.log((_face5Prop.length / faceLogs.length) * 100);
-
-  // genterate list of 24
-
-  let pattern_list = [];
-  var yellow = (_face0Prop.length / faceLogs.length) * 100;
-  var yellow_length = Math.round((yellow/100) *24);
-
-  for(var i = 0; i < yellow_length; i++) {
-    pattern_list.push(0);
-  }
-
-  var red = (_face1Prop.length / faceLogs.length) * 100;
-  var red_length =  Math.round((red/100) *24);
-
-  for(var j = 0; j < red_length; j++) {
-    pattern_list.push(1);
-  }
-
-  var blue = (_face2Prop.length / faceLogs.length) * 100;
-  var blue_length =  Math.round((blue/100) *24);
-
-  for(var k = 0; k < blue_length; k++) {
-    pattern_list.push(2);
-  }
-
-  var green = (_face3Prop.length / faceLogs.length) * 100;
-  var green_length =  Math.round((green/100) *24);
-
-  for(var l = 0; l < green_length; l++) {
-    pattern_list.push(3);
-  }
-
-  var purple = (_face4Prop.length / faceLogs.length) * 100;
-  var purple_length =  Math.round((purple/100) *24);
-
-  for(var m = 0; m < purple_length; m++) {
-    pattern_list.push(4);
-  }
-
-  var orange = (_face5Prop.length / faceLogs.length) * 100;
-  var orange_length =  Math.round((orange/100) *24);
-
-  for(var n = 0; n < orange_length; n++) {
-    pattern_list.push(5);
-  }
-
-  if (pattern_list.length < 24) {
-    while(pattern_list.length < 24) {
-      pattern_list.push(9)
-    }
-  } else if (pattern_list.length > 24){
-    pattern_list.slice(0,23);
-  }
-
-  return pattern_list;
 }
 
 async function publishLightControlMessage(pattern, action) {
