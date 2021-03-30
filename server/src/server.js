@@ -4,7 +4,7 @@ const express = require("express");
 const mqtt = require("mqtt");
 const admin = require("firebase-admin");
 const Sentry = require("@sentry/node");
-const Tracing = require("@sentry/tracing");
+const cors = require('cors')
 const app = express();
 
 const port = process.env.PORT;
@@ -303,7 +303,7 @@ function sleep(ms) {
   });
 }
 
-app.get("/healthZ", function (_, res) {
+app.get("/healthZ", cors(), function (_, res, __) {
   console.log("don't sleep");
   return res.sendStatus(200);
 });

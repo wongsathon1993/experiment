@@ -10,8 +10,8 @@
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
 
-#define WIFI_STA_NAME "" //change to your own ssid
-#define WIFI_STA_PASS "" //change to your own password
+#define WIFI_STA_NAME "VIVEK" //change to your own ssid
+#define WIFI_STA_PASS "022760491" //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -42,7 +42,6 @@ void callback(char *topic, byte *payload, unsigned int length)
     deserializeJson(incoming, (char *)payload);
     JsonObject obj = incoming.as<JsonObject>();
     String action = obj["action"];
-    int prob = obj["prob"];
 
     JsonArray array = incoming["list"].as<JsonArray>();
 

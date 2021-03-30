@@ -5,9 +5,10 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Max72xxPanel.h>
+#include <HTTPClient.h>
 
-#define WIFI_STA_NAME "" //change to your own ssid
-#define WIFI_STA_PASS "" //change to your own password
+#define WIFI_STA_NAME "VIVEK" //change to your own ssid
+#define WIFI_STA_PASS "022760491" //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -29,6 +30,8 @@ char output[1024];
 
 WiFiClient client;
 PubSubClient mqtt(client);
+
+HTTPClient http;
 
 void noFace()
 {
@@ -258,6 +261,7 @@ void loop()
     if (mqtt.connect(MQTT_USER_ID, MQTT_USERNAME, MQTT_PASSWORD))
     {
       Serial.println("connected");
+      resetSystem();
       sendSensorData();
     }
     else
@@ -434,4 +438,21 @@ void sendDataToServer(int index)
 void resetSystem()
 {
   currentIndex = 0;
+  http.begin("https://emotional-collector-6xbr2pwt3a-as.a.run.app/healthZ");
+
+  int httpCode = http.GET();
+  if(httpCode > 0)
+  {
+    String payload = http.getString();
+    Serial.println(httpCode);
+    Serial.println(payload);
+  }
+  else
+  {
+    Serial.println("Error on HTTP request");
+  }
+
+  http.end();
+
+  delay(1000);
 }
