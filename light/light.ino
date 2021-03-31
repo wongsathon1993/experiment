@@ -10,7 +10,7 @@
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
 
-#define WIFI_STA_NAME "VIVEK" //change to your own ssid
+#define WIFI_STA_NAME "VIVEK"     //change to your own ssid
 #define WIFI_STA_PASS "022760491" //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
@@ -54,7 +54,8 @@ void callback(char *topic, byte *payload, unsigned int length)
 
         FastLED.clear();
 
-        for (int index = 0; index < NUM_LEDS; index++) {
+        for (int index = 0; index < NUM_LEDS; index++)
+        {
             int number = array[index];
             switch (number)
             {
@@ -122,6 +123,7 @@ void setup()
     delay(3000); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(BRIGHTNESS);
+    checkLEDs();
 }
 
 void loop()
@@ -134,6 +136,7 @@ void loop()
             Serial.println("connected");
             mqtt.subscribe("/controls");
             sendSensorData();
+            resetSystem();
         }
         else
         {
@@ -159,4 +162,39 @@ void sendSensorData()
     serializeJson(doc, output);
 
     mqtt.publish("/sensors", output);
+}
+
+void resetSystem()
+{
+    currentIndex = 0;
+    http.begin("https://emotional-collector-6xbr2pwt3a-as.a.run.app/lightRefresh");
+
+    int httpCode = http.GET();
+    if (httpCode > 0)
+    {
+        String payload = http.getString();
+        Serial.println(httpCode);
+        Serial.println(payload);
+    }
+    else
+    {
+        Serial.println("Error on HTTP request");
+    }
+
+    http.end();
+
+    delay(1000);
+}
+
+void checkLEDs()
+{
+    for (int index = 0; index < NUM_LEDS; index += 3)
+    {
+        leds[index] = CRGB::White;
+    }
+
+    FastLED.show();
+    FastLED.delay(1000 / UPDATES_PER_SECOND);
+    delay(5000);
+    FastLED.clear();
 }

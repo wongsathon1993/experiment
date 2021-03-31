@@ -4,7 +4,7 @@ const express = require("express");
 const mqtt = require("mqtt");
 const admin = require("firebase-admin");
 const Sentry = require("@sentry/node");
-const cors = require('cors')
+const cors = require("cors");
 const app = express();
 
 const port = process.env.PORT;
@@ -270,7 +270,6 @@ async function publishLightControlMessage(pattern, action) {
     type: "LIGHT",
     success: true,
     action: action,
-    prob: 25,
     list: pattern,
   };
   await sleep(500);
@@ -305,6 +304,19 @@ function sleep(ms) {
 
 app.get("/healthZ", cors(), function (_, res, __) {
   console.log("don't sleep");
+  return res.sendStatus(200);
+});
+
+app.get("/lightRefresh", cors(), function (_, res, __) {
+  setTimeout(() => {
+    try {
+      computeLightPattern();
+    } catch (e) {
+      Sentry.captureException(e);
+    } finally {
+      transaction.finish();
+    }
+  }, 1000);
   return res.sendStatus(200);
 });
 
