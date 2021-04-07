@@ -204,8 +204,6 @@ function computeLightPattern() {
 
       var pattern_list = [];
 
-      console.log(pattern_list);
-
       var yellow = (_face0Prop.length / faceLogs.length) * 100;
       var yellow_length = Math.round((yellow / 100) * 24);
 
@@ -308,6 +306,11 @@ app.get("/healthZ", cors(), function (_, res, __) {
 });
 
 app.get("/lightRefresh", cors(), function (_, res, __) {
+  const transaction = Sentry.startTransaction({
+    op: "experiment",
+    name: "System Transaction",
+  });
+
   setTimeout(() => {
     try {
       computeLightPattern();

@@ -3,6 +3,7 @@
 #include <binary.h>
 #include <PubSubClient.h>
 #include <FastLED.h>
+#include <HTTPClient.h>
 
 #define LED_PIN 5
 #define NUM_LEDS 24
@@ -10,8 +11,8 @@
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
 
-#define WIFI_STA_NAME "VIVEK"     //change to your own ssid
-#define WIFI_STA_PASS "022760491" //change to your own password
+#define WIFI_STA_NAME "True_IoT_Pocket_WiFi_P1_39955" //change to your own ssid
+#define WIFI_STA_PASS "39639955" //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -27,6 +28,8 @@ unsigned long delaytime = 1000;
 
 WiFiClient client;
 PubSubClient mqtt(client);
+
+HTTPClient http;
 
 char output[1024];
 
@@ -166,7 +169,6 @@ void sendSensorData()
 
 void resetSystem()
 {
-    currentIndex = 0;
     http.begin("https://emotional-collector-6xbr2pwt3a-as.a.run.app/lightRefresh");
 
     int httpCode = http.GET();

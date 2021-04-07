@@ -7,8 +7,8 @@
 #include <Max72xxPanel.h>
 #include <HTTPClient.h>
 
-#define WIFI_STA_NAME "VIVEK" //change to your own ssid
-#define WIFI_STA_PASS "022760491" //change to your own password
+#define WIFI_STA_NAME "True_IoT_Pocket_WiFi_P1_39955" //change to your own ssid
+#define WIFI_STA_PASS "39639955" //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -41,20 +41,12 @@ void noFace()
 
 void happyFace()
 {
-  matrix.drawPixel(0, 0, 1);
-  matrix.drawPixel(1, 0, 1); //eyebrown
-  matrix.drawPixel(2, 0, 1);
-
-  matrix.drawPixel(5, 0, 1);
-  matrix.drawPixel(6, 0, 1);
-  matrix.drawPixel(7, 0, 1); //eyebrown
-
   matrix.drawPixel(1, 2, 1);
 
   matrix.drawPixel(6, 2, 1);
 
   matrix.drawPixel(1, 3, 1);
-  matrix.drawPixel(3, 3, 1); //nose
+  matrix.drawPixel(3, 3, 1);
 
   matrix.drawPixel(6, 3, 1);
 
@@ -68,82 +60,50 @@ void happyFace()
 
 void sadFace()
 {
-  matrix.drawPixel(0, 0, 1);
-  matrix.drawPixel(1, 0, 1); //eyebrown
-  matrix.drawPixel(2, 0, 1);
-
-  matrix.drawPixel(5, 0, 1);
-  matrix.drawPixel(6, 0, 1);
-  matrix.drawPixel(7, 0, 1); //eyebrown
-
   matrix.drawPixel(0, 2, 1);
   matrix.drawPixel(1, 2, 1);
   matrix.drawPixel(2, 2, 1);
-
   matrix.drawPixel(5, 2, 1);
   matrix.drawPixel(6, 2, 1);
   matrix.drawPixel(7, 2, 1);
 
   matrix.drawPixel(1, 3, 1);
-
-  matrix.drawPixel(6, 3, 1); //nose
+  matrix.drawPixel(6, 3, 1);
 
   matrix.drawPixel(1, 4, 1);
-
-  matrix.drawPixel(4, 4, 1);
   matrix.drawPixel(6, 4, 1);
 
-  matrix.drawPixel(3, 6, 1);
-  matrix.drawPixel(4, 6, 1);
+  matrix.drawPixel(3, 5, 1);
+  matrix.drawPixel(4, 5, 1);
 
-  matrix.drawPixel(2, 7, 1);
-  matrix.drawPixel(5, 7, 1);
+  matrix.drawPixel(2, 6, 1);
+  matrix.drawPixel(5, 6, 1);
   matrix.write();
 }
 
 void normalFace()
 {
-  matrix.drawPixel(0, 0, 1);
-  matrix.drawPixel(1, 0, 1); //eyebrown
-  matrix.drawPixel(2, 0, 1);
-
-  matrix.drawPixel(5, 0, 1);
-  matrix.drawPixel(6, 0, 1);
-  matrix.drawPixel(7, 0, 1); //eyebrown
-
   matrix.drawPixel(1, 2, 1);
-
   matrix.drawPixel(6, 2, 1);
 
   matrix.drawPixel(1, 3, 1);
-  matrix.drawPixel(3, 3, 1); //nose
-
   matrix.drawPixel(6, 3, 1);
 
-  matrix.drawPixel(3, 5, 1);
-  matrix.drawPixel(4, 5, 1);
+  matrix.drawPixel(3, 4, 1);
+
+  matrix.drawPixel(3, 6, 1);
+  matrix.drawPixel(4, 6, 1);
   matrix.write();
 }
 
 void boredFace()
 {
-  matrix.drawPixel(0, 0, 1);
-  matrix.drawPixel(1, 0, 1); //eyebrown
-  matrix.drawPixel(2, 0, 1);
-
-  matrix.drawPixel(5, 0, 1);
-  matrix.drawPixel(6, 0, 1);
-  matrix.drawPixel(7, 0, 1); //eyebrown
-
   matrix.drawPixel(1, 2, 1);
-
   matrix.drawPixel(6, 2, 1);
 
   matrix.drawPixel(1, 3, 1);
-
+  matrix.drawPixel(4, 3, 1);
   matrix.drawPixel(6, 3, 1);
-
-  matrix.drawPixel(4, 4, 1);
 
   matrix.drawPixel(2, 6, 1);
   matrix.drawPixel(3, 6, 1);
@@ -154,51 +114,38 @@ void boredFace()
 
 void angryFace()
 {
-  matrix.drawPixel(0, 0, 1);
-  matrix.drawPixel(1, 0, 1); //eyebrown
-
-  matrix.drawPixel(6, 0, 1);
-  matrix.drawPixel(7, 0, 1); //eyebrown
-
   matrix.drawPixel(2, 1, 1);
-
   matrix.drawPixel(5, 1, 1);
 
   matrix.drawPixel(1, 2, 1);
-
+  matrix.drawPixel(2, 2, 1);
+  matrix.drawPixel(5, 2, 1);
   matrix.drawPixel(6, 2, 1);
 
   matrix.drawPixel(1, 3, 1);
-  matrix.drawPixel(3, 3, 1); //nose
-
   matrix.drawPixel(6, 3, 1);
 
-  matrix.drawPixel(3, 5, 1);
-  matrix.drawPixel(4, 5, 1);
+  matrix.drawPixel(3, 4, 1);
+  matrix.drawPixel(4, 4, 1);
 
-  matrix.drawPixel(2, 6, 1);
-  matrix.drawPixel(5, 6, 1);
+  matrix.drawPixel(2, 5, 1);
+  matrix.drawPixel(5, 5, 1);
 
-  matrix.drawPixel(1, 7, 1);
-  matrix.drawPixel(6, 7, 1);
+  matrix.drawPixel(1, 6, 1);
+  matrix.drawPixel(6, 6, 1);
   matrix.write();
 }
 
 void anxiousFace()
 {
-  matrix.drawPixel(0, 0, 1);
-  matrix.drawPixel(1, 0, 1); //eyebrown
-
-  matrix.drawPixel(6, 0, 1);
-  matrix.drawPixel(7, 0, 1); //eyebrown
+  matrix.drawPixel(2, 1, 1);
+  matrix.drawPixel(5, 1, 1);
 
   matrix.drawPixel(1, 2, 1);
-
   matrix.drawPixel(6, 2, 1);
 
   matrix.drawPixel(1, 3, 1);
-  matrix.drawPixel(4, 3, 1); //nose
-
+  matrix.drawPixel(4, 3, 1);
   matrix.drawPixel(6, 3, 1);
 
   matrix.drawPixel(2, 5, 1);
@@ -293,7 +240,7 @@ void loop()
 
       delay(100);
 
-      if ((distance1 < 20) && (distance1 > 0))
+      if ((distance1 < 8) && (distance1 > 0))
       {
         if ((currentIndex >= 0) && (currentIndex != 5))
         {
@@ -319,7 +266,7 @@ void loop()
 
       delay(100);
 
-      if ((distance2 < 20) && (distance2 > 0))
+      if ((distance2 < 8) && (distance2 > 0))
       {
         if ((currentIndex <= 5) && (currentIndex != 0))
         {
