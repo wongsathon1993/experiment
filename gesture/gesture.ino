@@ -353,11 +353,11 @@ void sendDataToServer(int index)
     break;
   case 2:
      doc["value"] = 0.3;
-     doc["color"] = "green";
+     doc["color"] = "white";
     break;
   case 3:
      doc["value"] = 0.5;
-     doc["color"] = "orange";
+     doc["color"] = "green";
     break;
   case 4:
      doc["value"] = 0.8;
