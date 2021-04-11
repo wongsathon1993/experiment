@@ -12,7 +12,7 @@
 #define COLOR_ORDER GRB
 
 #define WIFI_STA_NAME "True_IoT_Pocket_WiFi_P1_39955" //change to your own ssid
-#define WIFI_STA_PASS "39639955" //change to your own password
+#define WIFI_STA_PASS "39639955"                      //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -108,11 +108,21 @@ void setup()
     WiFi.mode(WIFI_STA);
     WiFi.begin(WIFI_STA_NAME, WIFI_STA_PASS);
 
+    int currentLED = 0;
+
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
         Serial.print(".");
         digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+        runningLEDs(currentLED) if (currentLED < NUM_LEDS)
+        {
+            currentLED++;
+        }
+        else
+        {
+            currentLED = 0;
+        }
     }
 
     digitalWrite(LED_BUILTIN, HIGH);
@@ -198,5 +208,17 @@ void checkLEDs()
     FastLED.show();
     FastLED.delay(1000 / UPDATES_PER_SECOND);
     delay(5000);
+    FastLED.clear();
+}
+
+void runningLEDs(int index)
+{
+    if (index != 0)
+    {
+        leds[index - 1] = CRGB::Black;
+    }
+    leds[index] = CRGB::White;
+    FastLED.show();
+    FastLED.delay(1000 / UPDATES_PER_SECOND);
     FastLED.clear();
 }

@@ -8,7 +8,7 @@
 #include <HTTPClient.h>
 
 #define WIFI_STA_NAME "True_IoT_Pocket_WiFi_P1_39955" //change to your own ssid
-#define WIFI_STA_PASS "39639955" //change to your own password
+#define WIFI_STA_PASS "39639955"                      //change to your own password
 
 #define MQTT_SERVER "m16.cloudmqtt.com"
 #define MQTT_PORT 16319
@@ -224,7 +224,7 @@ void loop()
 
     Serial.println(soundPortValue);
 
-    if (((soundPortValue < 2047) && (soundPortValue > 0)) || (soundPortValue == 4095))
+    if (((soundPortValue < 55) && (soundPortValue > 0)) || (soundPortValue == 4095))
     {
       long duration1, distance1;
       digitalWrite(uOneTrigPin, LOW);
@@ -240,7 +240,7 @@ void loop()
 
       delay(100);
 
-      if ((distance1 < 8) && (distance1 > 0))
+      if ((distance1 < 6) && (distance1 > 0))
       {
         if ((currentIndex >= 0) && (currentIndex != 5))
         {
@@ -266,7 +266,7 @@ void loop()
 
       delay(100);
 
-      if ((distance2 < 8) && (distance2 > 0))
+      if ((distance2 < 6) && (distance2 > 0))
       {
         if ((currentIndex <= 5) && (currentIndex != 0))
         {
@@ -348,24 +348,24 @@ void sendDataToServer(int index)
     doc["color"] = "yellow";
     break;
   case 1:
-     doc["value"] = 0.2;
-     doc["color"] = "blue";
+    doc["value"] = 0.2;
+    doc["color"] = "blue";
     break;
   case 2:
-     doc["value"] = 0.3;
-     doc["color"] = "white";
+    doc["value"] = 0.3;
+    doc["color"] = "white";
     break;
   case 3:
-     doc["value"] = 0.5;
-     doc["color"] = "green";
+    doc["value"] = 0.5;
+    doc["color"] = "green";
     break;
   case 4:
-     doc["value"] = 0.8;
-     doc["color"] = "red";
+    doc["value"] = 0.8;
+    doc["color"] = "red";
     break;
   case 5:
-     doc["value"] = 1.3;
-     doc["color"] = "purple";
+    doc["value"] = 1.3;
+    doc["color"] = "purple";
     break;
   default:
     doc["value"] = 9;
@@ -388,7 +388,7 @@ void resetSystem()
   http.begin("https://emotional-collector-6xbr2pwt3a-as.a.run.app/healthZ");
 
   int httpCode = http.GET();
-  if(httpCode > 0)
+  if (httpCode > 0)
   {
     String payload = http.getString();
     Serial.println(httpCode);

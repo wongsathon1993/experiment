@@ -72,6 +72,9 @@ client.on("message", function (topic, message) {
   if (isJsonString(message)) {
     var action = JSON.parse(message);
     console.log(`incoming message: ${topic}:${message.toString()}`);
+    if (action.type == "GESTURE") {
+      saveSelectedFaceToFireStore(message);
+    }
     switch (topic) {
       case process.env.SENSOR_TOPIC:
         if (isSensorExist(message)) {
@@ -80,11 +83,9 @@ client.on("message", function (topic, message) {
         break;
       case process.env.SYSTEM_TOPIC:
         if (action.type == "GESTURE") {
-          setTimeout(() => {
-            saveSelectedFaceToFireStore(message);
-            computeLightPattern();
-            saveActionToFireStore(message);
-          }, 1000);
+          // setTimeout(() => {
+          computeLightPattern();
+          // }, 1000);
         }
         break;
       case process.env.CONTROL_TOPIC:
@@ -110,9 +111,7 @@ function isJsonString(str) {
 function saveActionToFireStore(message) {
   let now = new Date();
   const db = cloudFirestore.collection("actions");
-  const doc = db.doc();
-
-  doc.set({
+  db.doc().set({
     topic: "actions",
     action: message.toString(),
     createAt: now.toLocaleString(),
@@ -123,9 +122,8 @@ function saveActionToFireStore(message) {
 function saveSelectedFaceToFireStore(message) {
   let now = new Date();
   const db = cloudFirestore.collection("faceLogs");
-  const doc = db.doc();
 
-  doc.set({
+  db.doc().set({
     topic: "faces",
     selectedFace: message.toString(),
     createAt: now.toLocaleString(),
@@ -187,6 +185,8 @@ async function computeLightPattern() {
       _face5Prop.push(face.data());
     }
   });
+
+  const _dataloaded = await Promise.all(faceLogs);
 
   // genterate list of 24
 
@@ -282,6 +282,15 @@ function sleep(ms) {
   });
 }
 
+function clearCollection(path) {
+  const ref = cloudFirestore.collection(path);
+  ref.onSnapshot((snapshot) => {
+    snapshot.docs.forEach((doc) => {
+      ref.doc(doc.id).delete();
+    });
+  });
+}
+
 app.get("/healthZ", cors(), function (_, res, __) {
   console.log("don't sleep");
   return res.sendStatus(200);
@@ -290,6 +299,19 @@ app.get("/healthZ", cors(), function (_, res, __) {
 app.get("/lightRefresh", cors(), function (_, res, __) {
   setTimeout(() => {
     computeLightPattern();
+  }, 1000);
+  return res.sendStatus(200);
+});
+
+app.get("/resetData", function (req, res, __) {
+  let path = req.query.path;
+
+  if (path === undefined || path === "") {
+    return res.sendStatus(400);
+  }
+
+  setTimeout(() => {
+    clearCollection(path);
   }, 1000);
   return res.sendStatus(200);
 });
