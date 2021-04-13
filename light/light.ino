@@ -33,6 +33,8 @@ HTTPClient http;
 
 char output[1024];
 
+String hwid = 5027;
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
 
@@ -45,6 +47,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     deserializeJson(incoming, (char *)payload);
     JsonObject obj = incoming.as<JsonObject>();
     String action = obj["action"];
+    String triggerDevice = obj["to"];
 
     JsonArray array = incoming["list"].as<JsonArray>();
 
@@ -52,7 +55,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     delay(1000);
     digitalWrite(LED_BUILTIN, (action == "ON") ? HIGH : LOW);
     delay(1000);
-    if (action == "ON")
+    if (action == "ON" && triggerDevice == hwid)
     {
 
         FastLED.clear();
@@ -168,7 +171,7 @@ void sendSensorData()
     StaticJsonDocument<1024> doc;
 
     doc["sensor"] = "LIGHT";
-    doc["id"] = 5027;
+    doc["id"] = hwid;
     doc["config"] = 24;
     doc["active"] = true;
 

@@ -70,8 +70,8 @@ client.on("error", function () {
 client.on("message", function (topic, message) {
   /* topic list = ['/system', '/controls', '/sensors'] */
   if (isJsonString(message)) {
-    var action = JSON.parse(message);
     console.log(`incoming message: ${topic}:${message.toString()}`);
+    var action = JSON.parse(message);
     if (action.type == "GESTURE") {
       saveSelectedFaceToFireStore(message);
     }
@@ -83,9 +83,7 @@ client.on("message", function (topic, message) {
         break;
       case process.env.SYSTEM_TOPIC:
         if (action.type == "GESTURE") {
-          // setTimeout(() => {
-          computeLightPattern();
-          // }, 1000);
+          computeLightPattern(action.hwid);
         }
         break;
       case process.env.CONTROL_TOPIC:
@@ -145,7 +143,7 @@ function registerNewSensor(message) {
   });
 }
 
-async function computeLightPattern() {
+async function computeLightPattern(hwid) {
   let _face0Prop = [];
   let _face1Prop = [];
   let _face2Prop = [];
@@ -156,7 +154,15 @@ async function computeLightPattern() {
   let faceLogs = [];
 
   const faceDb = cloudFirestore.collection("faceLogs");
+  const sensorPair = await cloudFirestore
+    .collection("sensors")
+    .where("pair", "==", hwid)
+    .limit(1)
+    .get()
+    .data();
   const snapshot = await faceDb.get();
+
+  const pair_hwid = JSON.parse(sensorPair["pair"]);
 
   snapshot.forEach((face) => {
     faceLogs.push(face.data());
@@ -186,7 +192,7 @@ async function computeLightPattern() {
     }
   });
 
-  const _dataloaded = await Promise.all(faceLogs);
+  await Promise.all(faceLogs);
 
   // genterate list of 24
 
@@ -242,13 +248,14 @@ async function computeLightPattern() {
     pattern_list.slice(0, 23);
   }
 
-  publishLightControlMessage(pattern_list, "ON");
+  publishLightControlMessage(pattern_list, pair_hwid, "ON");
 }
 
-async function publishLightControlMessage(pattern, action) {
+async function publishLightControlMessage(pattern, hwid, action) {
   let trigg_message = {
     type: "LIGHT",
     success: true,
+    to: hwid,
     action: action,
     list: pattern,
   };
@@ -296,23 +303,20 @@ app.get("/healthZ", cors(), function (_, res, __) {
   return res.sendStatus(200);
 });
 
-app.get("/lightRefresh", cors(), function (_, res, __) {
-  setTimeout(() => {
-    computeLightPattern();
-  }, 1000);
+app.get("/lightRefresh", cors(), async function (_, res, __) {
+  computeLightPattern();
+  await sleep(1000);
   return res.sendStatus(200);
 });
 
-app.get("/resetData", function (req, res, __) {
+app.get("/resetData", async function (req, res, __) {
   let path = req.query.path;
 
   if (path === undefined || path === "") {
     return res.sendStatus(400);
   }
-
-  setTimeout(() => {
-    clearCollection(path);
-  }, 1000);
+  clearCollection(path);
+  await sleep(1000);
   return res.sendStatus(200);
 });
 

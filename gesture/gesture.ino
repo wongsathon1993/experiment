@@ -33,6 +33,8 @@ PubSubClient mqtt(client);
 
 HTTPClient http;
 
+String hwid = 140137;
+
 void noFace()
 {
   matrix.drawPixel(0, 0, 1);
@@ -323,8 +325,7 @@ void sendSensorData()
   StaticJsonDocument<1024> doc;
 
   doc["sensor"] = "GESTURE";
-  doc["id"] = 140137;
-  doc["config"] = 64;
+  doc["id"] = hwid;
   doc["active"] = true;
 
   serializeJson(doc, output);
@@ -340,6 +341,7 @@ void sendDataToServer(int index)
 
   doc["type"] = "GESTURE";
   doc["face"] = index;
+  doc["hwid"] = hwid;
 
   switch (index)
   {
