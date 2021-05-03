@@ -77,7 +77,7 @@ client.on("message", function (topic, message) {
     }
     switch (topic) {
       case process.env.SENSOR_TOPIC:
-        if (isSensorExist(message)) {
+        if (sensorNotExist(message)) {
           registerNewSensor(message);
         }
         break;
@@ -263,7 +263,7 @@ async function publishLightControlMessage(pattern, hwid, action) {
   client.publish(process.env.CONTROL_TOPIC, JSON.stringify(trigg_message));
 }
 
-async function isSensorExist(message) {
+async function sensorNotExist(message) {
   var device = JSON.parse(message);
   let sensorRef = cloudFirestore.collection("sensor");
   let not_exist = false;
