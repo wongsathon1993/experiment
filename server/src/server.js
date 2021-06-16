@@ -64,7 +64,7 @@ client.on("disconnect", () => {
 
 client.on("error", function () {
   console.log("Can't connect");
-  client.end();
+  client.reconnect();
 });
 
 client.on("message", function (topic, message) {
@@ -111,24 +111,33 @@ function isJsonString(str) {
 function saveActionToFireStore(message) {
   let now = new Date();
   const db = cloudFirestore.collection("actions");
-  db.doc().set({
-    topic: "actions",
-    action: message.toString(),
-    createAt: now.toLocaleString(),
-    timestamp: now.valueOf(),
-  });
+  db.doc()
+    .set({
+      topic: "actions",
+      action: message.toString(),
+      createAt: now.toLocaleString(),
+      timestamp: now.valueOf(),
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }
 
-function saveSelectedFaceToFireStore(message) {
+async function saveSelectedFaceToFireStore(message) {
   let now = new Date();
   const db = cloudFirestore.collection("faceLogs");
 
-  db.doc().set({
-    topic: "faces",
-    selectedFace: message.toString(),
-    createAt: now.toLocaleString(),
-    timestamp: now.valueOf(),
-  });
+  await db
+    .doc()
+    .set({
+      topic: "faces",
+      selectedFace: message.toString(),
+      createAt: now.toLocaleString(),
+      timestamp: now.valueOf(),
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }
 
 function registerNewSensor(message) {
@@ -137,12 +146,16 @@ function registerNewSensor(message) {
   const db = cloudFirestore.collection("sensors");
   const doc = db.doc(device.id.toString());
 
-  doc.set({
-    topic: "sensors",
-    sensor: message.toString(),
-    createAt: now.toLocaleString(),
-    timestamp: now.valueOf(),
-  });
+  doc
+    .set({
+      topic: "sensors",
+      sensor: message.toString(),
+      createAt: now.toLocaleString(),
+      timestamp: now.valueOf(),
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }
 
 async function computeLightPattern() {
@@ -155,38 +168,43 @@ async function computeLightPattern() {
 
   let faceLogs = [];
 
-  const faceDb = cloudFirestore.collection("faceLogs");
-  const snapshot = await faceDb.get();
+  await cloudFirestore
+    .collection("faceLogs")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((face) => {
+        faceLogs.push(face.data());
+        var data = JSON.parse(face.data()["selectedFace"]);
+        if (data["color"] == "yellow") {
+          _face0Prop.push(face.data());
+        }
 
-  snapshot.forEach((face) => {
-    faceLogs.push(face.data());
-    var data = JSON.parse(face.data()["selectedFace"]);
-    if (data["color"] == "yellow") {
-      _face0Prop.push(face.data());
-    }
+        if (data["color"] == "blue") {
+          _face1Prop.push(face.data());
+        }
 
-    if (data["color"] == "blue") {
-      _face1Prop.push(face.data());
-    }
+        if (data["color"] == "white") {
+          _face2Prop.push(face.data());
+        }
 
-    if (data["color"] == "white") {
-      _face2Prop.push(face.data());
-    }
+        if (data["color"] == "green") {
+          _face3Prop.push(face.data());
+        }
 
-    if (data["color"] == "green") {
-      _face3Prop.push(face.data());
-    }
+        if (data["color"] == "red") {
+          _face4Prop.push(face.data());
+        }
 
-    if (data["color"] == "red") {
-      _face4Prop.push(face.data());
-    }
+        if (data["color"] == "purple") {
+          _face5Prop.push(face.data());
+        }
+      });
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 
-    if (data["color"] == "purple") {
-      _face5Prop.push(face.data());
-    }
-  });
-
-  const _dataloaded = await Promise.all(faceLogs);
+  await Promise.all(faceLogs);
 
   // genterate list of 24
 

@@ -1,7 +1,7 @@
 {
   "name": "experiment",
   "version": "1.0.0",
-  "description":"",
+  "description": "",
   "main": "src/server.js",
   "repository": "https://github.com/wongsathon1993/experiment.git",
   "author": "krseisenh@gmail.com",
@@ -17,7 +17,8 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "firebase-admin": "^9.4.2",
-    "mqtt": "^4.2.6"
+    "mqtt": "^4.2.6",
+    "node-schedule": "^2.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
