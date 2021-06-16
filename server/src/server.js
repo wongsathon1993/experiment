@@ -9,14 +9,12 @@ const app = express();
 
 const port = process.env.PORT;
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
-const fireStore = process.env.DATABASE_URL;
 
 const base64ToJSON = (s) =>
   s ? JSON.parse(Buffer.from(s, "base64").toString()) : undefined;
 
 admin.initializeApp({
   credential: admin.credential.cert(base64ToJSON(serviceAccount)),
-  databaseURL: fireStore,
 });
 
 Sentry.init({
@@ -32,26 +30,7 @@ cloudFirestore.settings({ timestampsInSnapshots: true });
 const client = mqtt.connect(`${process.env.MQTT_BROKER_URL}`);
 
 client.on("connect", function () {
-  // system topic event
-  client.subscribe(process.env.SYSTEM_TOPIC, function (err) {
-    if (!err) {
-      console.log(`subscribed to ${process.env.SYSTEM_TOPIC}`);
-    }
-  });
-
-  // controls topic
-  client.subscribe(process.env.CONTROL_TOPIC, function (err) {
-    if (!err) {
-      console.log(`subscribed to ${process.env.CONTROL_TOPIC}`);
-    }
-  });
-
-  // light and gesture sensor topic
-  client.subscribe(process.env.SENSOR_TOPIC, function (err) {
-    if (!err) {
-      console.log(`subscribed to ${process.env.SENSOR_TOPIC}`);
-    }
-  });
+  console.log("Ready To Rock!!");
 });
 
 client.on("reconnect", () => {
@@ -66,97 +45,6 @@ client.on("error", function () {
   console.log("Can't connect");
   client.reconnect();
 });
-
-client.on("message", function (topic, message) {
-  /* topic list = ['/system', '/controls', '/sensors'] */
-  if (isJsonString(message)) {
-    var action = JSON.parse(message);
-    console.log(`incoming message: ${topic}:${message.toString()}`);
-    if (action.type == "GESTURE") {
-      saveSelectedFaceToFireStore(message);
-    }
-    switch (topic) {
-      case process.env.SENSOR_TOPIC:
-        if (isSensorExist(message)) {
-          registerNewSensor(message);
-        }
-        break;
-      case process.env.SYSTEM_TOPIC:
-        if (action.type == "GESTURE") {
-          // setTimeout(() => {
-          computeLightPattern();
-          // }, 1000);
-        }
-        break;
-      case process.env.CONTROL_TOPIC:
-        if (action.type == "LIGHT") {
-          saveActionToFireStore(message);
-        }
-        break;
-      default:
-        break;
-    }
-  }
-});
-
-function isJsonString(str) {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
-}
-
-function saveActionToFireStore(message) {
-  let now = new Date();
-  const db = cloudFirestore.collection("actions");
-  db.doc()
-    .set({
-      topic: "actions",
-      action: message.toString(),
-      createAt: now.toLocaleString(),
-      timestamp: now.valueOf(),
-    })
-    .catch((e) => {
-      console.log(e);
-    });
-}
-
-async function saveSelectedFaceToFireStore(message) {
-  let now = new Date();
-  const db = cloudFirestore.collection("faceLogs");
-
-  await db
-    .doc()
-    .set({
-      topic: "faces",
-      selectedFace: message.toString(),
-      createAt: now.toLocaleString(),
-      timestamp: now.valueOf(),
-    })
-    .catch((e) => {
-      console.log(e);
-    });
-}
-
-function registerNewSensor(message) {
-  var device = JSON.parse(message);
-  let now = new Date();
-  const db = cloudFirestore.collection("sensors");
-  const doc = db.doc(device.id.toString());
-
-  doc
-    .set({
-      topic: "sensors",
-      sensor: message.toString(),
-      createAt: now.toLocaleString(),
-      timestamp: now.valueOf(),
-    })
-    .catch((e) => {
-      console.log(e);
-    });
-}
 
 async function computeLightPattern() {
   let _face0Prop = [];
@@ -272,26 +160,6 @@ async function publishLightControlMessage(pattern, action) {
   };
   await sleep(500);
   client.publish(process.env.CONTROL_TOPIC, JSON.stringify(trigg_message));
-}
-
-async function isSensorExist(message) {
-  var device = JSON.parse(message);
-  let sensorRef = cloudFirestore.collection("sensor");
-  let not_exist = false;
-  await sensorRef
-    .doc(device.id.toString())
-    .get()
-    .then(function (doc) {
-      if (doc.exists) {
-        not_exist = false;
-      } else {
-        not_exist = true;
-      }
-    })
-    .catch(function (error) {
-      console.log("Error getting document:", error);
-    });
-  return not_exist;
 }
 
 function sleep(ms) {

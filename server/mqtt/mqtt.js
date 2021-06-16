@@ -1,5 +1,4 @@
 require("dotenv").config();
-const schedule = require("node-schedule");
 const mqtt = require("mqtt");
 const admin = require("firebase-admin");
 
@@ -22,7 +21,26 @@ const client = mqtt.connect(
 );
 
 client.on("connect", function () {
-  console.log("Ready To Rock!!");
+  // system topic event
+  client.subscribe("/system", function (err) {
+    if (!err) {
+      console.log(`subscribed to /system`);
+    }
+  });
+
+  // controls topic
+  client.subscribe("/controls", function (err) {
+    if (!err) {
+      console.log(`subscribed to /controls`);
+    }
+  });
+
+  // light and gesture sensor topic
+  client.subscribe("/sensors", function (err) {
+    if (!err) {
+      console.log(`subscribed to /sensors`);
+    }
+  });
 });
 
 client.on("reconnect", () => {
@@ -38,14 +56,95 @@ client.on("error", function () {
   client.reconnect();
 });
 
-const job = schedule.scheduleJob("*/1 * * * *", async function () {
-  let trigg_message = { type: "GESTURE", face: 5, value: 1.3, color: "purple" };
-  client.publish("/system", JSON.stringify(trigg_message));
+client.on("message", function (topic, message) {
+  /* topic list = ['/system', '/controls', '/sensors'] */
+  if (isJsonString(message)) {
+    var action = JSON.parse(message);
+    console.log(`incoming message: ${topic}:${message.toString()}`);
+    if (action.type == "GESTURE") {
+      saveSelectedFaceToFireStore(message);
+    }
+    switch (topic) {
+      case "/sensors":
+        if (isSensorExist(message)) {
+          registerNewSensor(message);
+        }
+        break;
+      case "/system":
+        if (action.type == "GESTURE") {
+          computeLightPattern();
+        }
+        break;
+      case "/controls":
+        if (action.type == "LIGHT") {
+          saveActionToFireStore(message);
+        }
+        break;
+      default:
+        break;
+    }
+  }
 });
 
-const updateLight = schedule.scheduleJob("*/2 * * * *", async function () {
-  computeLightPattern();
-});
+function isJsonString(str) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
+async function saveActionToFireStore(message) {
+  let now = new Date();
+  const db = cloudFirestore.collection("actions");
+  await db
+    .doc()
+    .set({
+      topic: "actions",
+      action: message.toString(),
+      createAt: now.toLocaleString(),
+      timestamp: now.valueOf(),
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+}
+
+async function saveSelectedFaceToFireStore(message) {
+  let now = new Date();
+  const db = cloudFirestore.collection("faceLogs");
+
+  await db
+    .doc()
+    .set({
+      topic: "faces",
+      selectedFace: message.toString(),
+      createAt: now.toLocaleString(),
+      timestamp: now.valueOf(),
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+}
+
+async function registerNewSensor(message) {
+  var device = JSON.parse(message);
+  let now = new Date();
+  const db = cloudFirestore.collection("sensors");
+  const doc = db.doc(device.id.toString());
+
+  await doc
+    .set({
+      topic: "sensors",
+      sensor: message.toString(),
+      createAt: now.toLocaleString(),
+      timestamp: now.valueOf(),
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+}
 
 async function computeLightPattern() {
   let _face0Prop = [];
@@ -161,6 +260,26 @@ async function publishLightControlMessage(pattern, action) {
   };
   await sleep(500);
   client.publish("/controls", JSON.stringify(trigg_message));
+}
+
+async function isSensorExist(message) {
+  var device = JSON.parse(message);
+  let sensorRef = cloudFirestore.collection("sensor");
+  let not_exist = false;
+  await sensorRef
+    .doc(device.id.toString())
+    .get()
+    .then(function (doc) {
+      if (doc.exists) {
+        not_exist = false;
+      } else {
+        not_exist = true;
+      }
+    })
+    .catch(function (error) {
+      console.log("Error getting document:", error);
+    });
+  return not_exist;
 }
 
 function sleep(ms) {
