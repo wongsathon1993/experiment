@@ -47,19 +47,20 @@ client.on("error", function () {
 });
 
 async function computeLightPattern() {
-  let _face0Prop = [];
-  let _face1Prop = [];
-  let _face2Prop = [];
-  let _face3Prop = [];
-  let _face4Prop = [];
-  let _face5Prop = [];
-
-  let faceLogs = [];
-
   await cloudFirestore
     .collection("faceLogs")
+    .where("timestamp", ">=", 1623776400)
     .get()
     .then((snapshot) => {
+      let _face0Prop = [];
+      let _face1Prop = [];
+      let _face2Prop = [];
+      let _face3Prop = [];
+      let _face4Prop = [];
+      let _face5Prop = [];
+
+      let faceLogs = [];
+
       snapshot.forEach((face) => {
         faceLogs.push(face.data());
         var data = JSON.parse(face.data()["selectedFace"]);
@@ -87,68 +88,66 @@ async function computeLightPattern() {
           _face5Prop.push(face.data());
         }
       });
+
+      // genterate list of 24
+
+      var pattern_list = [];
+
+      var yellow = (_face0Prop.length / faceLogs.length) * 100;
+      var yellow_length = Math.round((yellow / 100) * 24);
+
+      for (var i = 0; i < yellow_length; i++) {
+        pattern_list.push(0);
+      }
+
+      var blue = (_face1Prop.length / faceLogs.length) * 100;
+      var blue_length = Math.round((blue / 100) * 24);
+
+      for (var j = 0; j < blue_length; j++) {
+        pattern_list.push(1);
+      }
+
+      var white = (_face2Prop.length / faceLogs.length) * 100;
+      var white_length = Math.round((white / 100) * 24);
+
+      for (var k = 0; k < white_length; k++) {
+        pattern_list.push(2);
+      }
+
+      var green = (_face3Prop.length / faceLogs.length) * 100;
+      var green_length = Math.round((green / 100) * 24);
+
+      for (var l = 0; l < green_length; l++) {
+        pattern_list.push(3);
+      }
+
+      var red = (_face4Prop.length / faceLogs.length) * 100;
+      var red_length = Math.round((red / 100) * 24);
+
+      for (var m = 0; m < red_length; m++) {
+        pattern_list.push(4);
+      }
+
+      var purple = (_face5Prop.length / faceLogs.length) * 100;
+      var purple_length = Math.round((purple / 100) * 24);
+
+      for (var n = 0; n < purple_length; n++) {
+        pattern_list.push(5);
+      }
+
+      if (pattern_list.length < 24) {
+        while (pattern_list.length < 24) {
+          pattern_list.push(9);
+        }
+      } else if (pattern_list.length > 24) {
+        pattern_list.slice(0, 23);
+      }
+
+      publishLightControlMessage(pattern_list, "ON");
     })
     .catch((e) => {
       console.log(e);
     });
-
-  await Promise.all(faceLogs);
-
-  // genterate list of 24
-
-  var pattern_list = [];
-
-  var yellow = (_face0Prop.length / faceLogs.length) * 100;
-  var yellow_length = Math.round((yellow / 100) * 24);
-
-  for (var i = 0; i < yellow_length; i++) {
-    pattern_list.push(0);
-  }
-
-  var blue = (_face1Prop.length / faceLogs.length) * 100;
-  var blue_length = Math.round((blue / 100) * 24);
-
-  for (var j = 0; j < blue_length; j++) {
-    pattern_list.push(1);
-  }
-
-  var white = (_face2Prop.length / faceLogs.length) * 100;
-  var white_length = Math.round((white / 100) * 24);
-
-  for (var k = 0; k < white_length; k++) {
-    pattern_list.push(2);
-  }
-
-  var green = (_face3Prop.length / faceLogs.length) * 100;
-  var green_length = Math.round((green / 100) * 24);
-
-  for (var l = 0; l < green_length; l++) {
-    pattern_list.push(3);
-  }
-
-  var red = (_face4Prop.length / faceLogs.length) * 100;
-  var red_length = Math.round((red / 100) * 24);
-
-  for (var m = 0; m < red_length; m++) {
-    pattern_list.push(4);
-  }
-
-  var purple = (_face5Prop.length / faceLogs.length) * 100;
-  var purple_length = Math.round((purple / 100) * 24);
-
-  for (var n = 0; n < purple_length; n++) {
-    pattern_list.push(5);
-  }
-
-  if (pattern_list.length < 24) {
-    while (pattern_list.length < 24) {
-      pattern_list.push(9);
-    }
-  } else if (pattern_list.length > 24) {
-    pattern_list.slice(0, 23);
-  }
-
-  publishLightControlMessage(pattern_list, "ON");
 }
 
 async function publishLightControlMessage(pattern, action) {

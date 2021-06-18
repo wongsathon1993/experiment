@@ -1,14 +1,16 @@
 {
   "name": "experiment",
   "version": "1.0.0",
-  "description": "",
+  "description": "iot base emotion collector",
   "main": "src/server.js",
   "repository": "https://github.com/wongsathon1993/experiment.git",
   "author": "krseisenh@gmail.com",
   "license": "MIT",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node test/mock_request.js",
+    "mqtt": "node mqtt/mqtt.js"
   },
   "dependencies": {
     "@sentry/node": "^6.1.0",
