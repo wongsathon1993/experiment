@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "node test/mock_request.js",
+    "cron": "node cron/cron.js",
     "mqtt": "node mqtt/mqtt.js"
   },
   "dependencies": {
